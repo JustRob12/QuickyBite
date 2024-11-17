@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .install-prompt-enter {
+    transform: translateY(100%);
+  }
+  .install-prompt-enter-active {
+    transform: translateY(0);
+    transition: transform 300ms ease-out;
+  }
+  .install-prompt-exit {
+    transform: translateY(0);
+  }
+  .install-prompt-exit-active {
+    transform: translateY(100%);
+    transition: transform 300ms ease-in;
+  }
+}
