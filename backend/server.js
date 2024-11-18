@@ -1,20 +1,61 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const connectDB = require('./config/db');
+   // backend/server.js
+   require('dotenv').config();
+   const express = require('express');
+   const mongoose = require('mongoose');
+   const cors = require('cors');
+   const authRoutes = require('./routes/auth');
 
-dotenv.config();
+   const app = express();
 
-const port = process.env.PORT || 5000;
+   // Check if MongoDB URI is defined
+   if (!process.env.MONGODB_URI) {
+     console.error('MongoDB URI is not defined in .env file');
+     process.exit(1);
+   }
 
-connectDB();
+   // Middleware
+   app.use(cors());
+   app.use(express.json());
 
-const app = express();
+   // MongoDB Connection with better error handling
+   mongoose.connect(process.env.MONGODB_URI, {
+     useNewUrlParser: true,
+     useUnifiedTopology: true,
+   })
+   .then(() => {
+     console.log('Successfully connected to MongoDB.');
+   })
+   .catch((error) => {
+     console.error('MongoDB connection error:', error.message);
+     process.exit(1);
+   });
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+   // Monitor MongoDB connection
+   mongoose.connection.on('error', err => {
+     console.error('MongoDB connection error:', err);
+   });
 
-app.use('/api/users', require('./routes/userRoutes'));
+   mongoose.connection.on('disconnected', () => {
+     console.log('MongoDB disconnected');
+   });
 
-app.listen(port, () => console.log(`Server started on port ${port}`)); 
+   // Routes
+   app.use('/api/auth', authRoutes);
+
+   // Error handling middleware
+   app.use((err, req, res, next) => {
+     console.error(err.stack);
+     res.status(500).json({ message: 'Something went wrong!' });
+   });
+
+   const PORT = process.env.PORT || 5000;
+   app.listen(PORT, () => {
+     console.log(`Server running on http://localhost:${PORT}`);
+   });
+
+   // Handle unhandled promise rejections
+   process.on('unhandledRejection', (err) => {
+     console.error('Unhandled Promise Rejection:', err);
+     // Close server & exit process
+     server.close(() => process.exit(1));
+   });
