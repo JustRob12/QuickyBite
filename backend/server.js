@@ -8,26 +8,32 @@
 
    const app = express();
 
+   // Define allowed origins
+   const allowedOrigins = [
+     'https://quickybite-1.onrender.com',
+     'https://quicky-bite-jnjc.vercel.app',
+     'http://localhost:5173',
+     'http://localhost:4173'
+   ];
+
    // Updated CORS configuration
    app.use(cors({
-     origin: ['https://quickybite-1.onrender.com'],
+     origin: function(origin, callback) {
+       // Allow requests with no origin (like mobile apps or curl requests)
+       if (!origin) return callback(null, true);
+       
+       if (allowedOrigins.indexOf(origin) !== -1) {
+         callback(null, true);
+       } else {
+         callback(new Error('Not allowed by CORS'));
+       }
+     },
      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
      allowedHeaders: ['Content-Type', 'Authorization'],
      credentials: true,
      preflightContinue: false,
      optionsSuccessStatus: 204
    }));
-
-   // Handle OPTIONS preflight requests
-   app.options('*', cors());
-
-   // Add headers middleware
-   app.use((req, res, next) => {
-     res.header('Access-Control-Allow-Origin', '*');
-     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-     next();
-   });
 
    app.use(express.json());
 
@@ -60,13 +66,12 @@
    });
 
    const PORT = process.env.PORT || 5000;
-   app.listen(PORT, () => {
+   const server = app.listen(PORT, () => {
      console.log(`Server running on port ${PORT}`);
    });
 
    // Handle unhandled promise rejections
    process.on('unhandledRejection', (err) => {
      console.error('Unhandled Promise Rejection:', err);
-     // Close server & exit process
      server.close(() => process.exit(1));
    });
