@@ -8,11 +8,26 @@
 
    const app = express();
 
-   // Updated CORS configuration for production
+   // Updated CORS configuration
    app.use(cors({
-     origin: ['http://localhost:5173', 'https://quickybite-1.onrender.com'],
-     credentials: true
+     origin: ['https://quickybite-1.onrender.com'],
+     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+     allowedHeaders: ['Content-Type', 'Authorization'],
+     credentials: true,
+     preflightContinue: false,
+     optionsSuccessStatus: 204
    }));
+
+   // Handle OPTIONS preflight requests
+   app.options('*', cors());
+
+   // Add headers middleware
+   app.use((req, res, next) => {
+     res.header('Access-Control-Allow-Origin', '*');
+     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+     next();
+   });
 
    app.use(express.json());
 
