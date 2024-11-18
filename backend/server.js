@@ -5,6 +5,7 @@
    const cors = require('cors');
    const authRoutes = require('./routes/auth');
    const foodRoutes = require('./routes/foodauth');
+   const shoppingListRoutes = require('./routes/shoppingList');
 
    const app = express();
 
@@ -58,6 +59,7 @@
    // Routes
    app.use('/api/auth', authRoutes);
    app.use('/api/food', foodRoutes);
+   app.use('/api/shopping-list', shoppingListRoutes);
 
    // Error handling middleware
    app.use((err, req, res, next) => {
