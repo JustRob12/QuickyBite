@@ -8,9 +8,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'logo192.png', 'logo512.png'],
+      devOptions: {
+        enabled: true
+      },
       manifest: {
-        name: 'QuickBites - Meal Planning App',
+        name: 'QuickBites',
         short_name: 'QuickBites',
         description: 'Your personal meal planning assistant',
         theme_color: '#B8860B',
