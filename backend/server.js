@@ -4,20 +4,19 @@
    const mongoose = require('mongoose');
    const cors = require('cors');
    const authRoutes = require('./routes/auth');
+   const foodRoutes = require('./routes/foodauth');
 
    const app = express();
 
-   // Check if MongoDB URI is defined
-   if (!process.env.MONGODB_URI) {
-     console.error('MongoDB URI is not defined in .env file');
-     process.exit(1);
-   }
+   // Updated CORS configuration for production
+   app.use(cors({
+     origin: ['http://localhost:5173', 'https://your-frontend-domain.com'],
+     credentials: true
+   }));
 
-   // Middleware
-   app.use(cors());
    app.use(express.json());
 
-   // MongoDB Connection with better error handling
+   // MongoDB Connection
    mongoose.connect(process.env.MONGODB_URI, {
      useNewUrlParser: true,
      useUnifiedTopology: true,
@@ -30,17 +29,14 @@
      process.exit(1);
    });
 
-   // Monitor MongoDB connection
-   mongoose.connection.on('error', err => {
-     console.error('MongoDB connection error:', err);
-   });
-
-   mongoose.connection.on('disconnected', () => {
-     console.log('MongoDB disconnected');
+   // Basic route for testing
+   app.get('/', (req, res) => {
+     res.json({ message: 'Welcome to the Food Calendar API' });
    });
 
    // Routes
    app.use('/api/auth', authRoutes);
+   app.use('/api/food', foodRoutes);
 
    // Error handling middleware
    app.use((err, req, res, next) => {
@@ -50,7 +46,7 @@
 
    const PORT = process.env.PORT || 5000;
    app.listen(PORT, () => {
-     console.log(`Server running on http://localhost:${PORT}`);
+     console.log(`Server running on port ${PORT}`);
    });
 
    // Handle unhandled promise rejections

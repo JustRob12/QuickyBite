@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import BottomBar from './BottomBar';
+import Header from './Header';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -12,14 +14,17 @@ function Dashboard() {
   };
 
   return (
-    <div className="p-4">
-      <h1>Welcome, {user.name}!</h1>
-      <button 
-        onClick={handleLogout}
-        className="bg-[#B8860B] text-white px-4 py-2 rounded-md"
-      >
-        Logout
-      </button>
+    <div className="pb-20">
+      <Header />
+      <div className="p-4">
+        <button 
+          onClick={handleLogout}
+          className="bg-[#B8860B] text-white px-4 py-2 rounded-md"
+        >
+          Logout
+        </button>
+      </div>
+      <BottomBar />
     </div>
   );
 }

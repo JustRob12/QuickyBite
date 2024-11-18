@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
+import FoodCalendar from './components/FoodCalendar';
+import Groceries from './components/Groceries';
+import Share from './components/Share';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -25,6 +28,30 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/calendar" 
+          element={
+            <ProtectedRoute>
+              <FoodCalendar />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/groceries" 
+          element={
+            <ProtectedRoute>
+              <Groceries />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/share" 
+          element={
+            <ProtectedRoute>
+              <Share />
             </ProtectedRoute>
           } 
         />

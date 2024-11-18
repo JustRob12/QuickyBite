@@ -1,0 +1,30 @@
+.custom-week-view {
+  border: none;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.custom-week-view .header-cell {
+  background-color: #FFF8DC;
+  border: none;
+  text-align: center;
+}
+
+.custom-week-view .header-cell.selected {
+  background-color: #B8860B;
+  color: white;
+}
+
+.custom-week-view .day-cell {
+  border: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.custom-week-view .day-cell:hover {
+  background-color: #FFF8DC;
+}
+
+.custom-week-view .day-cell.selected {
+  background-color: rgba(184, 134, 11, 0.1);
+}
