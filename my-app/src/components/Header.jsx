@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaUser, FaCog, FaBell, FaMoon, FaShare } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
 function Header() {
@@ -12,6 +12,22 @@ function Header() {
     localStorage.removeItem('user');
     navigate('/login');
   };
+
+  const menuItems = [
+    { 
+      icon: <FaUser className="text-[#B8860B]" />, 
+      label: 'Edit Profile',
+      onClick: () => {
+        setShowDropdown(false);
+        navigate('/edit-profile');
+      }
+    },
+    { icon: <FaCog className="text-[#B8860B]" />, label: 'Settings' },
+    { icon: <FaBell className="text-[#B8860B]" />, label: 'Notification Settings' },
+    { icon: <FaMoon className="text-[#B8860B]" />, label: 'Appearance' },
+    { icon: <FaShare className="text-[#B8860B]" />, label: 'Share App' },
+    { icon: <FaSignOutAlt className="text-[#B8860B]" />, label: 'Logout', onClick: handleLogout },
+  ];
 
   return (
     <div className="bg-white p-4 shadow-sm relative">
@@ -36,18 +52,22 @@ function Header() {
 
         {/* Dropdown Menu */}
         {showDropdown && (
-          <div className="absolute right-4 top-16 bg-white shadow-lg rounded-lg py-2 min-w-[150px] z-50 border border-gray-100">
+          <div className="absolute right-4 top-16 bg-white shadow-lg rounded-lg py-2 min-w-[200px] z-50 border border-gray-100">
             <div className="px-4 py-2 border-b border-gray-100">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
-            <button
-              onClick={handleLogout}
-              className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-            >
-              <FaSignOutAlt className="text-[#B8860B]" />
-              <span>Logout</span>
-            </button>
+            
+            {menuItems.map((item, index) => (
+              <button
+                key={index}
+                onClick={item.onClick || (() => {})}
+                className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </button>
+            ))}
           </div>
         )}
       </div>

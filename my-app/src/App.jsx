@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard';
 import FoodCalendar from './components/FoodCalendar';
 import Groceries from './components/Groceries';
 import Share from './components/Share';
+import EditProfile from './components/EditProfile';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -52,6 +53,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Share />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/edit-profile" 
+          element={
+            <ProtectedRoute>
+              <EditProfile />
             </ProtectedRoute>
           } 
         />

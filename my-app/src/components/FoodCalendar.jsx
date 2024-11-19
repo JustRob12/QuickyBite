@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import BottomBar from './BottomBar';
 import Header from './Header';
-import { FaCalendarAlt, FaCoffee, FaUtensils, FaWineGlass, FaCookie, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaCalendarAlt, FaCoffee, FaUtensils, FaWineGlass, FaCookie, FaChevronLeft, FaChevronRight, FaTrash } from 'react-icons/fa';
 import Calendar from './Calendar';
-import { addWeeks, subWeeks, format, startOfWeek, endOfWeek } from 'date-fns';
+import { addWeeks, subWeeks, format, startOfWeek, endOfWeek, addDays } from 'date-fns';
 import AddMealModal from './AddMealModal';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,17 +17,15 @@ function FoodCalendar() {
   const navigate = useNavigate();
   const [meals, setMeals] = useState([]);
   const [error, setError] = useState(null);
+  const [editingMeal, setEditingMeal] = useState(null);
 
   // Generate week dates starting from currentWeekStart
   const getWeekDates = (startDate) => {
+    const start = startOfWeek(startDate, { weekStartsOn: 0 }); // 0 = Sunday
     const dates = [];
-    const firstDay = new Date(startDate);
-    firstDay.setDate(firstDay.getDate() - firstDay.getDay()); // Start from Sunday
     
     for (let i = 0; i < 7; i++) {
-      const date = new Date(firstDay);
-      date.setDate(firstDay.getDate() + i);
-      dates.push(date);
+      dates.push(addDays(start, i));
     }
     return dates;
   };
@@ -113,8 +111,13 @@ function FoodCalendar() {
         return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/food`, {
-        method: 'POST',
+      const method = editingMeal ? 'PUT' : 'POST';
+      const url = editingMeal 
+        ? `${import.meta.env.VITE_API_URL}/api/food/${editingMeal._id}`
+        : `${import.meta.env.VITE_API_URL}/api/food`;
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -131,24 +134,61 @@ function FoodCalendar() {
           navigate('/login');
           return;
         }
-        throw new Error('Failed to save meal');
+        throw new Error(`Failed to ${editingMeal ? 'update' : 'save'} meal`);
       }
 
-      const savedMeal = await response.json();
-      console.log('Meal saved:', savedMeal);
-      
-      // Update the meals state
+      // Refresh meals
       await fetchMeals(selectedDate);
       setShowMealModal(false);
+      setEditingMeal(null);
     } catch (error) {
       console.error('Error saving meal:', error);
       setError(error.message);
     }
   };
 
-  // Update renderMealSection to show saved meals
+  // Add delete handler
+  const handleDeleteMeal = async (mealId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/food/${mealId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login');
+          return;
+        }
+        throw new Error('Failed to delete meal');
+      }
+
+      // Refresh meals after deletion
+      await fetchMeals(selectedDate);
+    } catch (error) {
+      console.error('Error deleting meal:', error);
+      setError(error.message);
+    }
+  };
+
+  // Update renderMealSection
   const renderMealSection = (icon, type) => {
     const mealOfType = Array.isArray(meals) ? meals.find(meal => meal.type === type) : null;
+
+    const handleMealClick = (meal) => {
+      setEditingMeal(meal);
+      setSelectedMealType(type);
+      setShowMealModal(true);
+    };
 
     return (
       <div className="bg-[#FFF8DC] p-4 rounded-lg shadow-sm">
@@ -157,18 +197,32 @@ function FoodCalendar() {
             {icon}
             <span className="font-medium">{type}</span>
           </div>
-          <button 
-            onClick={() => {
-              setSelectedMealType(type);
-              setShowMealModal(true);
-            }} 
-            className="text-[#B8860B] text-xl"
-          >
-            +
-          </button>
+          {mealOfType ? (
+            <button 
+              onClick={() => handleDeleteMeal(mealOfType._id)}
+              className="text-red-500 hover:text-red-700 p-2"
+              title="Delete meal"
+            >
+              <FaTrash size={16} />
+            </button>
+          ) : (
+            <button 
+              onClick={() => {
+                setEditingMeal(null);
+                setSelectedMealType(type);
+                setShowMealModal(true);
+              }} 
+              className="text-[#B8860B] text-xl"
+            >
+              +
+            </button>
+          )}
         </div>
         {mealOfType ? (
-          <div className="text-sm">
+          <div 
+            className="text-sm cursor-pointer hover:bg-[#FFF3D6] p-2 rounded-lg"
+            onClick={() => handleMealClick(mealOfType)}
+          >
             <p className="font-medium">{mealOfType.mealName}</p>
             {mealOfType.additionalDish && (
               <p className="text-gray-600">+ {mealOfType.additionalDish}</p>
@@ -176,10 +230,37 @@ function FoodCalendar() {
             {mealOfType.sideDish && (
               <p className="text-gray-600">+ {mealOfType.sideDish}</p>
             )}
+            {mealOfType.additionalInfo && (
+              <p className="text-gray-500 text-xs mt-1">{mealOfType.additionalInfo}</p>
+            )}
           </div>
         ) : (
           <p className="text-sm text-gray-600">Add {type.toLowerCase()}</p>
         )}
+      </div>
+    );
+  };
+
+  // Add function to render dots for week view
+  const renderWeekDayDots = (date) => {
+    const dayMeals = meals.filter(meal => 
+      format(new Date(meal.date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+    );
+
+    // Sort meals by type to ensure consistent dot order
+    const mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+    const existingMealTypes = mealTypes.filter(type => 
+      dayMeals.some(meal => meal.type === type)
+    );
+
+    return (
+      <div className="flex justify-center gap-0.5 mt-1">
+        {existingMealTypes.map((_, index) => (
+          <div
+            key={index}
+            className="w-1 h-1 rounded-full bg-[#B8860B]"
+          />
+        ))}
       </div>
     );
   };
@@ -212,19 +293,26 @@ function FoodCalendar() {
 
           <div className="flex justify-between px-8">
             {weekDates.map((date, index) => (
-              <button
+              <div
                 key={index}
-                onClick={() => setSelectedDate(date)}
-                className={`flex flex-col items-center w-10 py-2 rounded-xl transition-all
-                  ${date.toDateString() === selectedDate.toDateString() 
-                    ? 'bg-[#B8860B] text-white scale-110' 
-                    : 'hover:bg-gray-100'}`}
+                className="flex flex-col items-center"
               >
-                <span className="text-xs">
-                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'][date.getDay()]}
-                </span>
-                <span className="text-sm font-medium mt-1">{date.getDate()}</span>
-              </button>
+                <button
+                  onClick={() => setSelectedDate(date)}
+                  className={`flex flex-col items-center w-10 py-2 rounded-xl transition-all
+                    ${format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
+                      ? 'bg-[#B8860B] text-white scale-110' 
+                      : 'hover:bg-gray-100'}`}
+                >
+                  <span className="text-xs">
+                    {format(date, 'EEE')}
+                  </span>
+                  <span className="text-sm font-medium mt-1">
+                    {format(date, 'd')}
+                  </span>
+                </button>
+                {renderWeekDayDots(date)}
+              </div>
             ))}
           </div>
 
@@ -243,13 +331,9 @@ function FoodCalendar() {
           {renderMealSection(<FaWineGlass className="text-[#B8860B]" />, "Dinner")}
           {renderMealSection(<FaCookie className="text-[#B8860B]" />, "Snack")}
         </div>
-
-        {/* Save Button */}
-        <button className="w-full bg-[#B8860B] text-white py-2 rounded-lg mt-4">
-          Save
-        </button>
       </div>
       <BottomBar />
+      
       {showFullCalendar && (
         <Calendar
           selectedDate={selectedDate}
@@ -258,15 +342,20 @@ function FoodCalendar() {
             setCurrentWeekStart(date);
           }}
           onClose={() => setShowFullCalendar(false)}
+          meals={meals}
         />
       )}
 
       {/* Add Meal Modal */}
       <AddMealModal
         isOpen={showMealModal}
-        onClose={() => setShowMealModal(false)}
+        onClose={() => {
+          setShowMealModal(false);
+          setEditingMeal(null);
+        }}
         mealType={selectedMealType}
         onSave={handleSaveMeal}
+        existingMeal={editingMeal}
       />
     </div>
   );

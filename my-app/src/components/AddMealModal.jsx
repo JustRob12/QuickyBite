@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-function AddMealModal({ isOpen, onClose, mealType, onSave }) {
-  const [mealName, setMealName] = useState('');
-  const [additionalDish, setAdditionalDish] = useState('');
-  const [sideDish, setSideDish] = useState('');
-  const [additionalInfo, setAdditionalInfo] = useState('');
+function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
+  const [mealName, setMealName] = useState(existingMeal?.mealName || '');
+  const [additionalDish, setAdditionalDish] = useState(existingMeal?.additionalDish || '');
+  const [sideDish, setSideDish] = useState(existingMeal?.sideDish || '');
+  const [additionalInfo, setAdditionalInfo] = useState(existingMeal?.additionalInfo || '');
   const modalRef = useRef();
 
   useEffect(() => {
@@ -22,6 +22,20 @@ function AddMealModal({ isOpen, onClose, mealType, onSave }) {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen && existingMeal) {
+      setMealName(existingMeal.mealName || '');
+      setAdditionalDish(existingMeal.additionalDish || '');
+      setSideDish(existingMeal.sideDish || '');
+      setAdditionalInfo(existingMeal.additionalInfo || '');
+    } else if (!isOpen) {
+      setMealName('');
+      setAdditionalDish('');
+      setSideDish('');
+      setAdditionalInfo('');
+    }
+  }, [isOpen, existingMeal]);
 
   const handleSave = () => {
     onSave({
