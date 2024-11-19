@@ -3,6 +3,30 @@ const router = express.Router();
 const Food = require('../models/Food');
 const auth = require('../middleware/auth'); // Assuming you have auth middleware
 
+// Get foods within a date range (This must come BEFORE /:date route)
+router.get('/range', auth, async (req, res) => {
+  try {
+    const startDate = new Date(req.query.start);
+    const endDate = new Date(req.query.end);
+    
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+
+    const foods = await Food.find({
+      userId: req.user.id,
+      date: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    }).sort({ date: 1 });
+
+    res.json(foods);
+  } catch (error) {
+    console.error('Error in /range:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get all foods for a specific date
 router.get('/:date', auth, async (req, res) => {
   try {
