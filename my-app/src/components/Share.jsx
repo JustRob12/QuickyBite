@@ -5,13 +5,30 @@ import { format } from 'date-fns';
 
 function Share() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalContent, setModalContent] = useState('');
+  const [modalTitle, setModalTitle] = useState('');
+
+  const handleCopyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(modalContent);
+      alert('Copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert('Failed to copy to clipboard');
+    }
+  };
+
+  const handleSendGmail = () => {
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&body=${encodeURIComponent(modalContent)}&su=${encodeURIComponent(modalTitle)}`;
+    window.open(gmailUrl, '_blank');
+  };
 
   const handleShareFoodList = async () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem('token');
       
-      // Get current month's start and end dates
       const today = new Date();
       const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
       const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
@@ -28,7 +45,6 @@ function Share() {
       if (!response.ok) throw new Error('Failed to fetch meals');
       const meals = await response.json();
       
-      // Format meals data for email
       const mealsByDate = meals.reduce((acc, meal) => {
         const date = format(new Date(meal.date), 'MMM dd, yyyy');
         if (!acc[date]) acc[date] = [];
@@ -40,9 +56,9 @@ function Share() {
         .map(([date, meals]) => `${date}\n${meals.join('\n')}`)
         .join('\n\n');
 
-      // Open Gmail compose window
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&body=${encodeURIComponent(emailBody)}&su=${encodeURIComponent('My Food Calendar')}`;
-      window.open(gmailUrl, '_blank');
+      setModalContent(emailBody);
+      setModalTitle('My Food Calendar');
+      setShowModal(true);
 
     } catch (error) {
       console.error('Error sharing food list:', error);
@@ -69,7 +85,6 @@ function Share() {
       if (!response.ok) throw new Error('Failed to fetch shopping list');
       const items = await response.json();
       
-      // Group items by completion status
       const { completed, pending } = items.reduce(
         (acc, item) => {
           if (item.isCompleted) {
@@ -82,7 +97,6 @@ function Share() {
         { completed: [], pending: [] }
       );
 
-      // Format shopping list for email
       let emailBody = 'Shopping List\n\n';
       
       if (pending.length > 0) {
@@ -103,9 +117,9 @@ function Share() {
         emailBody += 'No items in shopping list';
       }
 
-      // Open Gmail compose window
-      const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&body=${encodeURIComponent(emailBody)}&su=${encodeURIComponent('My Shopping List')}`;
-      window.open(gmailUrl, '_blank');
+      setModalContent(emailBody);
+      setModalTitle('My Shopping List');
+      setShowModal(true);
 
     } catch (error) {
       console.error('Error sharing shopping list:', error);
@@ -139,6 +153,45 @@ function Share() {
           </button>
         </div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-lg max-h-[80vh] flex flex-col">
+            <div className="p-6 border-b">
+              <h3 className="text-xl font-semibold text-[#B8860B]">{modalTitle}</h3>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <pre className="whitespace-pre-wrap font-mono text-sm">
+                {modalContent}
+              </pre>
+            </div>
+            
+            <div className="p-6 border-t flex gap-3">
+              <button
+                onClick={handleCopyToClipboard}
+                className="flex-1 px-4 py-2 text-[#B8860B] border-2 border-[#B8860B] rounded-xl hover:bg-gray-50"
+              >
+                Copy Text
+              </button>
+              <button
+                onClick={handleSendGmail}
+                className="flex-1 px-4 py-2 text-white bg-[#B8860B] rounded-xl hover:bg-[#9e7209]"
+              >
+                Send via Gmail
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-xl"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <BottomBar />
     </div>
   );

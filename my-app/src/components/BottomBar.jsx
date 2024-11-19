@@ -8,7 +8,7 @@ function BottomBar() {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2">
       <div className="flex justify-around items-center">
-        <Link 
+        {/* <Link 
           to="/dashboard" 
           className={`flex flex-col items-center p-2 ${
             location.pathname === '/dashboard' ? 'text-[#B8860B]' : 'text-gray-600'
@@ -16,7 +16,7 @@ function BottomBar() {
         >
           <FaHome className="text-xl mb-1" />
           <span className="text-xs">Home</span>
-        </Link>
+        </Link> */}
         
         <Link 
           to="/calendar" 
