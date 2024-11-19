@@ -18,20 +18,27 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function App() {
+  const token = localStorage.getItem('token');
+
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* Redirect root to calendar if logged in, otherwise to login */}
+        <Route 
+          path="/" 
+          element={token ? <Navigate to="/calendar" /> : <Navigate to="/login" />} 
+        />
+        
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        {/* <Route 
+        <Route 
           path="/dashboard" 
           element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           } 
-        /> */}
+        />
         <Route 
           path="/calendar" 
           element={
