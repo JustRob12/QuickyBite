@@ -33,7 +33,7 @@ function Login() {
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
       // Navigate to home or dashboard
-      navigate('/dashboard'); // You'll need to create this route
+      navigate('/calendar'); // You'll need to create this route
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed');
       console.error('Login error:', error);
