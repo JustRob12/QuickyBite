@@ -45,17 +45,41 @@ function Header() {
 
         <button 
           onClick={() => setShowDropdown(!showDropdown)}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
         >
-          <FaUserCircle className="text-[#B8860B] text-2xl" />
+          {user?.profilePicture ? (
+            <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#B8860B]">
+              <img 
+                src={user.profilePicture}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <FaUserCircle className="text-[#B8860B] text-2xl" />
+          )}
         </button>
 
         {/* Dropdown Menu */}
         {showDropdown && (
           <div className="absolute right-4 top-16 bg-white shadow-lg rounded-lg py-2 min-w-[200px] z-50 border border-gray-100">
-            <div className="px-4 py-2 border-b border-gray-100">
-              <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-              <p className="text-xs text-gray-500">{user?.email}</p>
+            {/* Profile Header */}
+            <div className="px-4 py-2 border-b border-gray-100 flex items-center gap-3">
+              {user?.profilePicture ? (
+                <div className="w-10 h-10 rounded-full overflow-hidden border border-[#B8860B]">
+                  <img 
+                    src={user.profilePicture}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <FaUserCircle className="text-[#B8860B] text-2xl" />
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                <p className="text-xs text-gray-500">{user?.email}</p>
+              </div>
             </div>
             
             {menuItems.map((item, index) => (
@@ -83,4 +107,4 @@ function Header() {
   );
 }
 
-export default Header; 
+export default Header;
