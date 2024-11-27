@@ -350,34 +350,7 @@ function Header() {
                 </div>
               </div>
 
-              {/* Share with User */}
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Share with user:</p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={shareUsername}
-                    onChange={(e) => setShareUsername(e.target.value)}
-                    placeholder="Enter username"
-                    className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  />
-                  <button
-                    onClick={handleShareWithUser}
-                    className="bg-[#B8860B] text-white px-4 rounded hover:bg-[#9A7209]"
-                  >
-                    Share
-                  </button>
-                </div>
-                {shareError && (
-                  <p className={`text-sm mt-1 ${
-                    shareError === 'Shared successfully!' 
-                      ? 'text-green-500' 
-                      : 'text-red-500'
-                  }`}>
-                    {shareError}
-                  </p>
-                )}
-              </div>
+            
 
               {/* Social Share */}
               <div>

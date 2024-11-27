@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BottomBar from './BottomBar';
 import Header from './Header';
 import { format } from 'date-fns';
-import { FaShare, FaCopy, FaEnvelope } from 'react-icons/fa';
+import { FaShare, FaCopy, FaEnvelope, FaTimes } from 'react-icons/fa';
 import axios from 'axios';
 
 function Share() {
@@ -201,77 +201,96 @@ function Share() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Share Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-2xl shadow-lg max-h-[80vh] flex flex-col">
-            <div className="p-6 border-b dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-[#B8860B]">{modalTitle}</h3>
-            </div>
-            
-            <div className="p-6 overflow-y-auto flex-1">
-              <pre className="whitespace-pre-wrap font-mono text-sm dark:text-white">
-                {modalContent}
-              </pre>
-            </div>
-            
-            <div className="p-6 border-t dark:border-gray-700 space-y-4">
-              {/* Email sharing section */}
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter user's email"
-                  className="flex-1 px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-700 
-                    bg-white dark:bg-gray-800 text-gray-800 dark:text-white 
-                    focus:border-[#B8860B] dark:focus:border-[#B8860B] outline-none"
-                />
-                <button
-                  onClick={handleShareWithUser}
-                  disabled={isLoading || !email.trim()}
-                  className={`px-4 py-2 rounded-xl flex items-center gap-2
-                    ${isLoading || !email.trim() 
-                      ? 'bg-gray-300 cursor-not-allowed' 
-                      : 'bg-[#B8860B] hover:bg-[#9e7209]'} 
-                    text-white transition-colors`}
-                >
-                  <FaShare />
-                  Share
-                </button>
-              </div>
-              
-              {shareError && (
-                <p className="text-red-500 text-sm">{shareError}</p>
-              )}
-              {shareSuccess && (
-                <p className="text-green-500 text-sm">{shareSuccess}</p>
-              )}
-
-              {/* Other sharing options */}
-              <div className="flex gap-3">
-                <button
-                  onClick={handleCopyToClipboard}
-                  className="flex-1 px-4 py-2 text-[#B8860B] border-2 border-[#B8860B] rounded-xl 
-                    hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2"
-                >
-                  <FaCopy />
-                  Copy Text
-                </button>
-                <button
-                  onClick={handleSendGmail}
-                  className="flex-1 px-4 py-2 text-white bg-[#B8860B] rounded-xl 
-                    hover:bg-[#9e7209] flex items-center justify-center gap-2"
-                >
-                  <FaEnvelope />
-                  Send via Gmail
-                </button>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-auto">
+            <div className="p-4 sm:p-6">
+              {/* Modal Header */}
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+                  {modalTitle}
+                </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl"
+                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
                 >
-                  Close
+                  <FaTimes className="h-5 w-5" />
                 </button>
+              </div>
+
+              {/* Content Preview */}
+              <div className="mb-4">
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 max-h-60 overflow-y-auto whitespace-pre-wrap text-sm">
+                  {modalContent}
+                </div>
+              </div>
+
+              {/* Share Options */}
+              <div className="space-y-4">
+                {/* Email Input */}
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Share with (email)
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter email address"
+                      className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm 
+                               focus:ring-2 focus:ring-[#B8860B] focus:border-transparent
+                               dark:bg-gray-700 dark:text-white"
+                    />
+                    <button
+                      onClick={handleShareWithUser}
+                      disabled={!email}
+                      className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-[#B8860B] 
+                               rounded-lg hover:bg-[#9A7209] focus:outline-none focus:ring-2 
+                               focus:ring-offset-2 focus:ring-[#B8860B] disabled:opacity-50
+                               disabled:cursor-not-allowed transition-colors duration-200"
+                    >
+                      Send
+                    </button>
+                  </div>
+                  {shareError && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                      {shareError}
+                    </p>
+                  )}
+                  {shareSuccess && (
+                    <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+                      {shareSuccess}
+                    </p>
+                  )}
+                </div>
+
+                {/* Quick Share Options */}
+                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                  <button
+                    onClick={handleCopyToClipboard}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 
+                             bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 
+                             focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 
+                             dark:hover:bg-gray-600 transition-colors duration-200"
+                  >
+                    <FaCopy className="mr-2 h-4 w-4" />
+                    Copy to clipboard
+                  </button>
+                  
+                  <button
+                    onClick={handleSendGmail}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 
+                             bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 
+                             focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 
+                             dark:hover:bg-gray-600 transition-colors duration-200"
+                  >
+                    <FaEnvelope className="mr-2 h-4 w-4" />
+                    Send via Email
+                  </button>
+                </div>
               </div>
             </div>
           </div>
