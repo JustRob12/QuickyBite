@@ -266,7 +266,7 @@ function FoodCalendar() {
   };
 
   return (
-    <div className="min-h-screen pb-20 bg-gray-900">
+    <div className="pb-20 dark:bg-gray-900">
       <Header />
       <div className="p-4">
         {/* Calendar Toggle */}
