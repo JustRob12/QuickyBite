@@ -266,19 +266,19 @@ function Header() {
             {showDropdown && (
               <div className="absolute right-0 top-12 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50">
                 <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-center gap-2">
                     {user?.profilePicture ? (
                       <img
                         src={user.profilePicture}
                         alt="Profile"
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="w-12 h-12 rounded-full object-cover"
                       />
                     ) : (
-                      <FaUserCircle className="w-10 h-10 text-gray-400 dark:text-gray-600" />
+                      <FaUserCircle className="w-12 h-12 text-gray-400 dark:text-gray-600" />
                     )}
-                    <div>
-                      <p className="font-medium dark:text-white">{user?.name}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{user?.email}</p>
+                    <div className="text-center">
+                      <p className="font-medium text-sm dark:text-white truncate max-w-[120px]">{user?.name}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[120px]">{user?.email}</p>
                     </div>
                   </div>
                 </div>
