@@ -89,12 +89,18 @@ router.post('/login', async (req, res) => {
       { expiresIn: '1h' }
     );
 
+    // Construct the full profile picture URL
+    const fullProfilePicturePath = user.profilePicture 
+      ? `${process.env.API_URL || 'http://localhost:5000'}${user.profilePicture}`
+      : null;
+
     res.json({ 
       token,
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        profilePicture: fullProfilePicturePath  // Send the full URL
       }
     });
   } catch (error) {

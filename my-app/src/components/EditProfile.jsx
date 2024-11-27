@@ -28,18 +28,16 @@ function EditProfile() {
       try {
         const formData = new FormData();
         formData.append('profilePicture', file);
-        formData.append('userId', user.id); // Using user.id instead of user._id
+        formData.append('userId', user.id);
 
-        console.log('Uploading profile picture for user:', user.id);
-        const response = await axios.post(`${API_URL}/api/auth/upload-profile-picture`, formData, {
+        const uploadResponse = await axios.post(`${API_URL}/api/auth/upload-profile-picture`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         });
 
-        if (response.data.profilePicture) {
-          const fullProfilePicturePath = `${API_URL}${response.data.profilePicture}`;
-          console.log('Profile picture uploaded successfully:', fullProfilePicturePath);
+        if (uploadResponse.data.profilePicture) {
+          const fullProfilePicturePath = `${API_URL}${uploadResponse.data.profilePicture}`;
           
           setProfileData(prev => ({
             ...prev,
