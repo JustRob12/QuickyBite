@@ -2,13 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { FaUserCircle, FaSignOutAlt, FaUser, FaCog, FaBell, FaMoon, FaShare } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import AppearanceModal from './AppearanceModal';
+import axios from 'axios';
 
 function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAppearanceModal, setShowAppearanceModal] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'system');
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/auth/user`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        const userData = response.data;
+        setUser({
+          ...userData,
+          profilePicture: userData.profilePicture ? 
+            `${import.meta.env.VITE_API_URL}/${userData.profilePicture}` : null
+        });
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   useEffect(() => {
     // Apply theme on mount and theme change
@@ -81,57 +107,59 @@ function Header() {
             <div className="text-sm text-gray-600 dark:text-gray-400">What to Eat on this Day</div>
           </div>
 
-          <button 
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            {user?.profilePicture ? (
-              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#B8860B]">
-                <img 
-                  src={user.profilePicture}
-                  alt="Profile"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ) : (
-              <FaUserCircle className="text-[#B8860B] text-2xl" />
-            )}
-          </button>
-
-          {/* Dropdown Menu */}
-          {showDropdown && (
-            <div className="absolute right-4 top-16 bg-white shadow-lg rounded-lg py-2 min-w-[200px] z-50 border border-gray-100">
-              {/* Profile Header */}
-              <div className="px-4 py-2 border-b border-gray-100 flex items-center gap-3">
+          <div className="relative">
+            <button
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex items-center space-x-2 focus:outline-none"
+            >
+              <div className="w-10 h-10 rounded-full overflow-hidden">
                 {user?.profilePicture ? (
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[#B8860B]">
-                    <img 
-                      src={user.profilePicture}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <img
+                    src={user.profilePicture}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <FaUserCircle className="text-[#B8860B] text-2xl" />
+                  <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                    <FaUserCircle className="w-full h-full text-gray-400 dark:text-gray-600" />
+                  </div>
                 )}
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
-                </div>
               </div>
-              
-              {menuItems.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={item.onClick || (() => {})}
-                  className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
+            </button>
+
+            {showDropdown && (
+              <div className="absolute right-0 top-12 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50">
+                <div className="p-4 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center gap-3">
+                    {user?.profilePicture ? (
+                      <img
+                        src={user.profilePicture}
+                        alt="Profile"
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <FaUserCircle className="w-10 h-10 text-gray-400 dark:text-gray-600" />
+                    )}
+                    <div>
+                      <p className="font-medium dark:text-white">{user?.name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{user?.email}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {menuItems.map((item, index) => (
+                  <button
+                    key={index}
+                    onClick={item.onClick || (() => {})}
+                    className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Overlay to close dropdown when clicking outside */}

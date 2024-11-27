@@ -5,9 +5,11 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  profilePicture: { type: String }, // This will store the file path
-  phoneNumber: { type: String },
-  pronouns: { type: String }
+  phoneNumber: { type: String, default: '' },
+  pronouns: { type: String, default: 'he/him' },
+  profilePicture: { type: String, default: '' }
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('User', userSchema);

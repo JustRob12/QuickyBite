@@ -2,73 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import BottomBar from './BottomBar';
 import Header from './Header';
 import { FaTrash } from 'react-icons/fa';
-
-function AddItemModal({ isOpen, onClose, onSave }) {
-  const [itemName, setItemName] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const modalRef = useRef();
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-
-  const handleSave = () => {
-    if (itemName.trim() && quantity.trim()) {
-      onSave({ itemName, quantity });
-      setItemName('');
-      setQuantity('');
-      onClose();
-    }
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div ref={modalRef} className="bg-white p-6 rounded-lg w-full max-w-md mx-4">
-        <h2 className="text-xl font-semibold mb-4">Create your Shopping List</h2>
-        <div className="space-y-4">
-          <div>
-            <input
-              type="text"
-              placeholder="Name"
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B8860B]"
-            />
-          </div>
-          <div>
-            <input
-              type="text"
-              placeholder="Quantity"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B8860B]"
-            />
-          </div>
-          <button
-            onClick={handleSave}
-            className="w-full bg-[#B8860B] text-white py-2 rounded-lg hover:bg-[#9B7506]"
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+import AddItemModal from './AddItemModal';
 
 function Groceries() {
   const [showModal, setShowModal] = useState(false);
@@ -166,14 +100,14 @@ function Groceries() {
   };
 
   return (
-    <div className="pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <div className="p-4">
         <div className="flex justify-between items-center mb-4">
-          <h1 className="text-xl font-semibold">Shopping List</h1>
-          <p className="text-sm text-gray-500">Create your Shopping List</p>
+          <h1 className="text-xl font-semibold dark:text-white">Shopping List</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Create your Shopping List</p>
         </div>
-
+        
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
@@ -181,24 +115,24 @@ function Groceries() {
         )}
         
         {loading ? (
-          <div className="text-center">Loading...</div>
+          <div className="text-center dark:text-white">Loading...</div>
         ) : (
           <div className="space-y-4">
             {shoppingList.map((item) => (
               <div 
                 key={item._id} 
-                className={`bg-white p-4 rounded-lg shadow ${
+                className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm ${
                   item.isCompleted ? 'opacity-50' : ''
                 }`}
               >
                 <div className="flex justify-between items-center">
                   <div className="flex-grow">
-                    <p className={`font-medium ${
+                    <p className={`font-medium dark:text-white ${
                       item.isCompleted ? 'line-through' : ''
                     }`}>
                       {item.itemName}
                     </p>
-                    <p className="text-sm text-gray-600">{item.quantity}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{item.quantity}</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <button
@@ -224,7 +158,10 @@ function Groceries() {
         {/* Add Button */}
         <button
           onClick={() => setShowModal(true)}
-          className="fixed bottom-24 right-4 w-12 h-12 bg-[#B8860B] text-white rounded-full flex items-center justify-center text-2xl shadow-lg"
+          className="fixed bottom-24 right-4 w-12 h-12 bg-[#B8860B] text-white 
+            rounded-full flex items-center justify-center text-2xl shadow-lg
+            hover:bg-[#9B7506] transition-colors duration-200
+            dark:hover:bg-[#8B6914] dark:shadow-gray-900"
         >
           +
         </button>

@@ -1,147 +1,306 @@
-import React, { useState, useRef } from 'react';
-import { FaArrowLeft, FaPen, FaTrash } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL;
+import { FaUserCircle, FaCamera, FaArrowLeft } from 'react-icons/fa';
+import Header from './Header';
 
 function EditProfile() {
-  const navigate = useNavigate();
-  const fileInputRef = useRef(null);
-  const user = JSON.parse(localStorage.getItem('user'));
-  
   const [profileData, setProfileData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phoneNumber: user?.phoneNumber || '',
-    pronouns: user?.pronouns || 'he/him',
-    profileImage: user?.profilePicture || null
+    name: '',
+    email: '',
+    phoneNumber: '',
+    pronouns: 'he/him',
+    profileImage: null
   });
+  const [isEditing, setIsEditing] = useState({
+    name: false,
+    email: false,
+    phoneNumber: false,
+    pronouns: false
+  });
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
-  const handleImageClick = () => {
-    fileInputRef.current.click();
-  };
-
-  const handleImageChange = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
+  // Load user data immediately
+  useEffect(() => {
+    const loadUserData = async () => {
       try {
-        const formData = new FormData();
-        formData.append('profilePicture', file);
-        formData.append('userId', user.id);
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/auth/user`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
 
-        const uploadResponse = await axios.post(`${API_URL}/api/auth/upload-profile-picture`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+        const userData = response.data;
+        console.log('Loaded user data:', userData); // Debug log
+
+        setProfileData({
+          name: userData.name || '',
+          email: userData.email || '',
+          phoneNumber: userData.phoneNumber || '',
+          pronouns: userData.pronouns || 'he/him',
+          profileImage: userData.profilePicture ? `${import.meta.env.VITE_API_URL}/${userData.profilePicture}` : null
         });
-
-        if (uploadResponse.data.profilePicture) {
-          const fullProfilePicturePath = `${API_URL}${uploadResponse.data.profilePicture}`;
-          
-          setProfileData(prev => ({
-            ...prev,
-            profileImage: fullProfilePicturePath
-          }));
-
-          const updatedUser = { ...user, profilePicture: fullProfilePicturePath };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-        }
       } catch (error) {
-        console.error('Error uploading profile picture:', error.response?.data || error.message);
-        alert('Failed to upload profile picture. Please try again.');
+        console.error('Error loading user data:', error);
+        setError('Error loading user data');
       }
+    };
+
+    loadUserData();
+  }, []);
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/upload-profile-picture`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      // Update the profile image with the full URL
+      const imageUrl = `${import.meta.env.VITE_API_URL}/${response.data.profilePicture}`;
+      
+      setProfileData(prev => ({
+        ...prev,
+        profileImage: imageUrl
+      }));
+
+      // Update localStorage
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      localStorage.setItem('user', JSON.stringify({
+        ...currentUser,
+        profilePicture: response.data.profilePicture
+      }));
+
+      console.log('Profile picture updated:', imageUrl); // Debug log
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      setError('Error uploading profile picture');
     }
   };
 
-  const handleDeleteAccount = () => {
-    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-      // Add delete account logic here
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    setError('');
+
+    try {
+      const token = localStorage.getItem('token');
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/auth/update-profile`,
+        {
+          name: profileData.name,
+          email: profileData.email,
+          phoneNumber: profileData.phoneNumber,
+          pronouns: profileData.pronouns
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const updatedUser = {
+        ...currentUser,
+        ...response.data.user,
+        profilePicture: currentUser.profilePicture
+      };
+
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      setProfileData(prev => ({
+        ...prev,
+        ...response.data.user,
+        profileImage: currentUser.profilePicture
+      }));
+
+      setIsEditing({
+        name: false,
+        email: false,
+        phoneNumber: false,
+        pronouns: false
+      });
+      
+      setError('');
+    } catch (error) {
+      setError(error.response?.data?.message || 'Error updating profile');
     }
+  };
+
+  const handleInputChange = (e) => {
+    setProfileData({
+      ...profileData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handlePronounsChange = async (e) => {
+    const newPronouns = e.target.value;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/auth/update-profile`,
+        {
+          ...profileData,
+          pronouns: newPronouns
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      setProfileData(prev => ({
+        ...prev,
+        pronouns: newPronouns
+      }));
+
+      // Update localStorage
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      localStorage.setItem('user', JSON.stringify({
+        ...currentUser,
+        pronouns: newPronouns
+      }));
+    } catch (error) {
+      setError(error.response?.data?.message || 'Error updating pronouns');
+    }
+  };
+
+  const renderEditableField = (fieldName, label, type = 'text') => {
+    return (
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {label}
+        </label>
+        <div className="flex items-center gap-2">
+          {isEditing[fieldName] ? (
+            <input
+              type={type}
+              name={fieldName}
+              value={profileData[fieldName]}
+              onChange={handleInputChange}
+              className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                focus:ring-2 focus:ring-[#B8860B] focus:border-transparent
+                dark:bg-gray-700 dark:text-white"
+            />
+          ) : (
+            <div className="flex-1 p-2 dark:text-white">
+              {profileData[fieldName] ? profileData[fieldName] : `No ${label.toLowerCase()} set`}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (isEditing[fieldName]) {
+                handleSubmit();
+              } else {
+                setIsEditing(prev => ({
+                  ...prev,
+                  [fieldName]: true
+                }));
+              }
+            }}
+            className="px-4 py-2 text-sm text-[#B8860B] border border-[#B8860B] rounded-lg
+              hover:bg-[#B8860B] hover:text-white transition-colors"
+          >
+            {isEditing[fieldName] ? 'Save' : 'Edit'}
+          </button>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="p-4 flex items-center border-b">
-        <button 
-          onClick={() => navigate(-1)}
-          className="p-2 hover:bg-gray-100 rounded-full"
-        >
-          <FaArrowLeft className="text-gray-600" />
-        </button>
-        <h1 className="ml-4 text-xl font-semibold">Edit Profile</h1>
-      </div>
-
-      {/* Profile Picture */}
-      <div className="p-6 flex flex-col items-center">
-        <div className="relative">
-          <div 
-            className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden cursor-pointer"
-            onClick={handleImageClick}
-          >
-            {profileData.profileImage ? (
-              <img 
-                src={profileData.profileImage} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <FaPen className="text-gray-400" />
-              </div>
-            )}
-          </div>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImageChange}
-            accept="image/*"
-            className="hidden"
-          />
-        </div>
-        <p className="mt-2 text-sm text-gray-600">Tap to change profile picture</p>
-      </div>
-
-      {/* Name Section */}
-      <div className="mt-4 text-center w-full">
-        <div className="flex items-center justify-center gap-2">
-          <h2 className="text-xl font-semibold">{profileData.name}</h2>
-          <button className="p-1">
-            <FaPen className="text-gray-400 text-sm" />
-          </button>
-        </div>
-        <p className="text-gray-500 text-sm">{profileData.pronouns}</p>
-      </div>
-
-      {/* Contact Information */}
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-gray-500">Email</label>
-          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-            <span>{profileData.email}</span>
-            <FaPen className="text-gray-400 text-sm" />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-gray-500">Phone Number</label>
-          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-            <span>{profileData.phoneNumber || 'Add phone number'}</span>
-            <FaPen className="text-gray-400 text-sm" />
-          </div>
-        </div>
-      </div>
-
-      {/* Delete Account Button */}
-      <div className="pt-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Header />
+      <div className="max-w-2xl mx-auto p-4">
         <button
-          onClick={handleDeleteAccount}
-          className="w-full flex items-center justify-center gap-2 text-red-500 py-3 border border-red-500 rounded-lg hover:bg-red-50"
+          onClick={() => navigate('/calendar')}
+          className="mb-4 flex items-center gap-2 text-[#B8860B] hover:text-[#9B7506] transition-colors
+            dark:text-[#B8860B] dark:hover:text-[#9B7506]"
         >
-          <FaTrash />
-          <span>Delete Account</span>
+          <FaArrowLeft />
+          <span>Back to Calendar</span>
         </button>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h1 className="text-2xl font-bold mb-6 dark:text-white">Edit Profile</h1>
+          
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded">
+              {error}
+            </div>
+          )}
+
+          {/* Profile Picture Section */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative">
+              {profileData.profileImage ? (
+                <img
+                  src={profileData.profileImage}
+                  alt="Profile"
+                  className="w-32 h-32 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                  <FaUserCircle className="w-20 h-20 text-gray-400 dark:text-gray-600" />
+                </div>
+              )}
+              <label className="absolute bottom-0 right-0 bg-[#B8860B] text-white p-2 rounded-full cursor-pointer hover:bg-[#9B7506] transition-colors">
+                <FaCamera className="w-4 h-4" />
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </label>
+            </div>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Tap to change profile picture
+            </p>
+          </div>
+
+          {/* Form Fields */}
+          <form className="space-y-4">
+            {renderEditableField('name', 'Name')}
+            {renderEditableField('email', 'Email', 'email')}
+            {renderEditableField('phoneNumber', 'Phone Number', 'tel')}
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Pronouns
+              </label>
+              <select
+                name="pronouns"
+                value={profileData.pronouns}
+                onChange={handlePronounsChange}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                  focus:ring-2 focus:ring-[#B8860B] focus:border-transparent
+                  dark:bg-gray-700 dark:text-white"
+              >
+                <option value="he/him">he/him</option>
+                <option value="she/her">she/her</option>
+                <option value="they/them">they/them</option>
+                <option value="other">other</option>
+              </select>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

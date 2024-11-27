@@ -54,7 +54,7 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div 
         ref={modalRef}
-        className="bg-[#B8860B] p-6 rounded-lg w-full max-w-md mx-4"
+        className="bg-[#B8860B] dark:bg-gray-800 p-6 rounded-lg w-full max-w-md mx-4"
       >
         <h2 className="text-xl font-semibold text-white mb-4">{mealType}</h2>
         
@@ -66,7 +66,8 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
               placeholder="Enter the meal here"
               value={mealName}
               onChange={(e) => setMealName(e.target.value)}
-              className="w-full p-2 rounded-lg border-0 focus:ring-2 focus:ring-white"
+              className="w-full p-2 rounded-lg border-0 focus:ring-2 focus:ring-white 
+                dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
             />
           </div>
 
@@ -74,7 +75,8 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
           <div>
             <button 
               onClick={() => setAdditionalDish(additionalDish ? '' : 'New Dish')}
-              className="text-white flex items-center gap-2 mb-2"
+              className="text-white flex items-center gap-2 mb-2 hover:text-gray-200 
+                dark:hover:text-gray-300"
             >
               <span className="text-xl">+</span> Additional Dish
             </button>
@@ -84,7 +86,8 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
                 placeholder="Enter additional dish"
                 value={additionalDish}
                 onChange={(e) => setAdditionalDish(e.target.value)}
-                className="w-full p-2 rounded-lg border-0 focus:ring-2 focus:ring-white"
+                className="w-full p-2 rounded-lg border-0 focus:ring-2 focus:ring-white 
+                  dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
               />
             )}
           </div>
@@ -96,7 +99,8 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
               placeholder="Enter some additional information"
               value={additionalInfo}
               onChange={(e) => setAdditionalInfo(e.target.value)}
-              className="w-full p-2 rounded-lg border-0 focus:ring-2 focus:ring-white resize-none h-24"
+              className="w-full p-2 rounded-lg border-0 focus:ring-2 focus:ring-white resize-none h-24 
+                dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
             />
           </div>
 
@@ -104,7 +108,8 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
           <div>
             <button 
               onClick={() => setSideDish(sideDish ? '' : 'New Side Dish')}
-              className="text-white flex items-center gap-2 mb-2"
+              className="text-white flex items-center gap-2 mb-2 hover:text-gray-200 
+                dark:hover:text-gray-300"
             >
               <span className="text-xl">+</span> Side Dish
             </button>
@@ -114,7 +119,8 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
                 placeholder="Enter side dish"
                 value={sideDish}
                 onChange={(e) => setSideDish(e.target.value)}
-                className="w-full p-2 rounded-lg border-0 focus:ring-2 focus:ring-white"
+                className="w-full p-2 rounded-lg border-0 focus:ring-2 focus:ring-white 
+                  dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
               />
             )}
           </div>
@@ -123,7 +129,9 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
         {/* Save Button */}
         <button
           onClick={handleSave}
-          className="w-full bg-white text-[#B8860B] font-semibold py-2 rounded-lg mt-6"
+          className="w-full bg-white dark:bg-gray-900 text-[#B8860B] font-semibold py-2 
+            rounded-lg mt-6 hover:bg-gray-100 dark:hover:bg-gray-800 
+            transition-colors duration-200"
         >
           Save
         </button>

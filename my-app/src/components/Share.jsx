@@ -130,24 +130,30 @@ function Share() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF8DC]">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       <div className="p-4 flex flex-col gap-4">
-        <div className="bg-white p-6 rounded-2xl shadow-sm">
+        <div className="bg-gray-800/10 dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
           <button
             onClick={handleShareFoodList}
             disabled={isLoading}
-            className="w-full py-3 text-center text-lg font-medium text-[#B8860B] bg-white rounded-xl border-2 border-[#B8860B] hover:bg-[#B8860B] hover:text-white transition-colors"
+            className="w-full py-3 text-center text-lg font-medium text-[#B8860B] 
+              bg-transparent rounded-xl border-2 border-[#B8860B] 
+              hover:bg-[#B8860B] hover:text-white transition-colors
+              dark:text-[#B8860B] dark:hover:text-white"
           >
             Share your Food List
           </button>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm">
+        <div className="bg-gray-800/10 dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
           <button
             onClick={handleShareShoppingList}
             disabled={isLoading}
-            className="w-full py-3 text-center text-lg font-medium text-[#B8860B] bg-white rounded-xl border-2 border-[#B8860B] hover:bg-[#B8860B] hover:text-white transition-colors"
+            className="w-full py-3 text-center text-lg font-medium text-[#B8860B] 
+              bg-transparent rounded-xl border-2 border-[#B8860B] 
+              hover:bg-[#B8860B] hover:text-white transition-colors
+              dark:text-[#B8860B] dark:hover:text-white"
           >
             Share your Shopping List
           </button>
@@ -157,13 +163,13 @@ function Share() {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-lg max-h-[80vh] flex flex-col">
-            <div className="p-6 border-b">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-2xl shadow-lg max-h-[80vh] flex flex-col">
+            <div className="p-6 border-b dark:border-gray-700">
               <h3 className="text-xl font-semibold text-[#B8860B]">{modalTitle}</h3>
             </div>
             
             <div className="p-6 overflow-y-auto flex-1">
-              <pre className="whitespace-pre-wrap font-mono text-sm">
+              <pre className="whitespace-pre-wrap font-mono text-sm dark:text-white">
                 {modalContent}
               </pre>
             </div>

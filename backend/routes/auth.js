@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -16,11 +17,10 @@ if (!fs.existsSync(uploadsDir)) {
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadsDir);
+    cb(null, 'uploads/')
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    cb(null, 'profile-' + Date.now() + path.extname(file.originalname))
   }
 });
 
@@ -29,39 +29,59 @@ const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limit
   },
-  fileFilter: function (req, file, cb) {
-    const allowedTypes = /jpeg|jpg|png|gif/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    if (extname && mimetype) {
-      return cb(null, true);
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Not an image! Please upload an image.'), false);
     }
-    cb(new Error('Only image files are allowed!'));
   }
 });
 
 // Register route
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
-    
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    const { name, email, password, phoneNumber, pronouns } = req.body;
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+    if (user) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ 
-      name, 
-      email, 
-      password: hashedPassword 
+    // Create new user
+    user = new User({
+      name,
+      email,
+      password,
+      phoneNumber: phoneNumber || '',
+      pronouns: pronouns || 'he/him'
     });
-    
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    // Save user
     await user.save();
-    res.status(201).json({ message: 'User registered successfully' });
+
+    // Create token
+    const payload = {
+      id: user.id
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Return user data without password
+    const userResponse = await User.findById(user.id).select('-password');
+
+    res.json({
+      token,
+      user: userResponse
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -109,55 +129,83 @@ router.post('/login', async (req, res) => {
 });
 
 // Upload profile picture route
-router.post('/upload-profile-picture', upload.single('profilePicture'), async (req, res) => {
+router.post('/upload-profile-picture', auth, upload.single('profilePicture'), async (req, res) => {
   try {
-    console.log('Upload request received:', { body: req.body, file: req.file });
-    
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    if (!req.body.userId) {
-      return res.status(400).json({ message: 'User ID is required' });
-    }
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { profilePicture: req.file.path.replace(/\\/g, '/') }, // Normalize path for all OS
+      { new: true }
+    ).select('-password');
 
-    const userId = req.body.userId;
-    console.log('Looking for user with ID:', userId);
-    
-    const user = await User.findById(userId);
-    
-    if (!user) {
-      console.log('User not found for ID:', userId);
-      return res.status(404).json({ message: 'User not found' });
-    }
+    console.log('Updated user with profile picture:', user); // Debug log
 
-    // Delete old profile picture if it exists
-    if (user.profilePicture) {
-      const oldPicturePath = path.join(uploadsDir, path.basename(user.profilePicture));
-      if (fs.existsSync(oldPicturePath)) {
-        fs.unlinkSync(oldPicturePath);
-      }
-    }
-
-    // Update user's profile picture path
-    const profilePicturePath = `/uploads/${req.file.filename}`;
-    console.log('Updating profile picture path to:', profilePicturePath);
-    
-    user.profilePicture = profilePicturePath;
-    await user.save();
-
-    console.log('Profile picture updated successfully');
-    res.json({ 
-      message: 'Profile picture uploaded successfully',
-      profilePicture: profilePicturePath
+    res.json({
+      message: 'Profile picture updated successfully',
+      profilePicture: user.profilePicture
     });
   } catch (error) {
     console.error('Profile picture upload error:', error);
-    res.status(500).json({ 
-      message: 'Error uploading profile picture', 
-      error: error.message,
-      stack: error.stack 
+    res.status(500).json({ message: 'Error uploading profile picture' });
+  }
+});
+
+// Add this route to handle profile updates
+router.put('/update-profile', auth, async (req, res) => {
+  try {
+    const { name, email, phoneNumber, pronouns } = req.body;
+    const userId = req.user.id;
+
+    // First get the current user to preserve existing data
+    const currentUser = await User.findById(userId);
+    
+    // Check if email is already in use by another user
+    if (email && email !== currentUser.email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email is already in use' });
+      }
+    }
+
+    // Update user profile while preserving other fields
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          name: name || currentUser.name,
+          email: email || currentUser.email,
+          phoneNumber: phoneNumber || currentUser.phoneNumber,
+          pronouns: pronouns || currentUser.pronouns,
+          profilePicture: currentUser.profilePicture
+        }
+      },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    // Log the update for debugging
+    console.log('Updated user:', updatedUser);
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: updatedUser
     });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ message: 'Error updating profile', error: error.message });
+  }
+});
+
+// Add this route if you haven't already
+router.get('/user', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

@@ -58,13 +58,13 @@ function Calendar({ selectedDate, onSelectDate, onClose, meals }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-4 rounded-lg w-[90%] max-w-md">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg w-[90%] max-w-md">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <button onClick={handlePrevMonth}>
             <FaChevronLeft className="text-[#B8860B]" />
           </button>
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-semibold dark:text-white">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
           <button onClick={handleNextMonth}>
@@ -78,7 +78,7 @@ function Calendar({ selectedDate, onSelectDate, onClose, meals }) {
           {weekDays.map(day => (
             <div 
               key={day} 
-              className="text-center text-sm font-medium text-gray-600 p-2"
+              className="text-center text-sm font-medium text-gray-600 dark:text-gray-400 p-2"
             >
               {day}
             </div>
@@ -100,9 +100,9 @@ function Calendar({ selectedDate, onSelectDate, onClose, meals }) {
                   onSelectDate(day);
                   onClose();
                 }}
-                className={`p-2 text-center rounded-full hover:bg-gray-100 transition-colors
-                  ${isSameDay(day, selectedDate) ? 'bg-[#B8860B] text-white hover:bg-[#B8860B]' : ''}
-                  ${!isSameMonth(day, currentMonth) ? 'text-gray-300' : ''}`}
+                className={`p-2 text-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors
+                  ${isSameDay(day, selectedDate) ? 'bg-[#B8860B] text-white' : 'dark:text-white'}
+                  ${!isSameMonth(day, currentMonth) ? 'text-gray-300 dark:text-gray-600' : ''}`}
               >
                 {format(day, 'd')}
               </button>

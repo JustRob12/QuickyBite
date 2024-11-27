@@ -6,22 +6,12 @@ function BottomBar() {
   const location = useLocation();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2">
+    <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-2">
       <div className="flex justify-around items-center">
-        {/* <Link 
-          to="/dashboard" 
-          className={`flex flex-col items-center p-2 ${
-            location.pathname === '/dashboard' ? 'text-[#B8860B]' : 'text-gray-600'
-          }`}
-        >
-          <FaHome className="text-xl mb-1" />
-          <span className="text-xs">Home</span>
-        </Link> */}
-        
         <Link 
           to="/calendar" 
           className={`flex flex-col items-center p-2 ${
-            location.pathname === '/calendar' ? 'text-[#B8860B]' : 'text-gray-600'
+            location.pathname === '/calendar' ? 'text-[#B8860B]' : 'text-gray-600 dark:text-gray-400'
           }`}
         >
           <FaCalendarAlt className="text-xl mb-1" />

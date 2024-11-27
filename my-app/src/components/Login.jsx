@@ -41,42 +41,42 @@ function Login() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-6xl font-bold">
             <span className="text-[#B8860B]">Quick</span>
-            <span className="text-black">Bites</span>
+            <span className="text-black dark:text-white">Bites</span>
           </h1>
-          <p className="text-sm text-gray-600">Because good things come to those who plan – morning, noon, and night.</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Because good things come to those who plan – morning, noon, and night.</p>
         </div>
         
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Login</h2>
-          <p className="text-gray-600">Welcome back! Please enter your details.</p>
+          <h2 className="text-2xl font-bold mb-2 dark:text-white">Login</h2>
+          <p className="text-gray-600 dark:text-gray-400">Welcome back! Please enter your details.</p>
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm mb-2">Email or Username</label>
+            <label className="block text-sm mb-2 dark:text-gray-300">Email or Username</label>
             <input 
               type="email" 
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-2">Password</label>
+            <label className="block text-sm mb-2 dark:text-gray-300">Password</label>
             <input 
               type="password" 
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               required
             />
           </div>

@@ -191,11 +191,11 @@ function FoodCalendar() {
     };
 
     return (
-      <div className="bg-[#FFF8DC] p-4 rounded-lg shadow-sm">
+      <div className="bg-[#FFF8DC] dark:bg-gray-800 p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
             {icon}
-            <span className="font-medium">{type}</span>
+            <span className="font-medium dark:text-white">{type}</span>
           </div>
           {mealOfType ? (
             <button 
@@ -220,22 +220,22 @@ function FoodCalendar() {
         </div>
         {mealOfType ? (
           <div 
-            className="text-sm cursor-pointer hover:bg-[#FFF3D6] p-2 rounded-lg"
+            className="text-sm cursor-pointer hover:bg-[#FFF3D6] dark:hover:bg-gray-700 p-2 rounded-lg"
             onClick={() => handleMealClick(mealOfType)}
           >
-            <p className="font-medium">{mealOfType.mealName}</p>
+            <p className="font-medium dark:text-white">{mealOfType.mealName}</p>
             {mealOfType.additionalDish && (
-              <p className="text-gray-600">+ {mealOfType.additionalDish}</p>
+              <p className="text-gray-600 dark:text-gray-400">+ {mealOfType.additionalDish}</p>
             )}
             {mealOfType.sideDish && (
-              <p className="text-gray-600">+ {mealOfType.sideDish}</p>
+              <p className="text-gray-600 dark:text-gray-400">+ {mealOfType.sideDish}</p>
             )}
             {mealOfType.additionalInfo && (
-              <p className="text-gray-500 text-xs mt-1">{mealOfType.additionalInfo}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{mealOfType.additionalInfo}</p>
             )}
           </div>
         ) : (
-          <p className="text-sm text-gray-600">Add {type.toLowerCase()}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Add {type.toLowerCase()}</p>
         )}
       </div>
     );
@@ -266,19 +266,19 @@ function FoodCalendar() {
   };
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 bg-white dark:bg-gray-900">
       <Header />
       <div className="p-4">
         {/* Calendar Toggle */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">
+          <h2 className="text-lg font-semibold dark:text-white">
             {displayMonth}
           </h2>
           <button 
             onClick={() => setShowFullCalendar(!showFullCalendar)}
-            className="p-2 hover:bg-gray-100 rounded-full"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
           >
-            <FaCalendarAlt className="text-[#B8860B] text-xl" />
+            <FaCalendarAlt className="text-[#B8860B]" />
           </button>
         </div>
 
@@ -286,7 +286,7 @@ function FoodCalendar() {
         <div className="relative mb-6">
           <button 
             onClick={handlePrevWeek}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <FaChevronLeft className="text-[#B8860B]" />
           </button>
@@ -301,8 +301,8 @@ function FoodCalendar() {
                   onClick={() => setSelectedDate(date)}
                   className={`flex flex-col items-center w-10 py-2 rounded-xl transition-all
                     ${format(date, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd')
-                      ? 'bg-[#B8860B] text-white scale-110' 
-                      : 'hover:bg-gray-100'}`}
+                      ? 'bg-[#B8860B] text-white' 
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-white'}`}
                 >
                   <span className="text-xs">
                     {format(date, 'EEE')}
@@ -318,7 +318,7 @@ function FoodCalendar() {
 
           <button 
             onClick={handleNextWeek}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-50"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             <FaChevronRight className="text-[#B8860B]" />
           </button>

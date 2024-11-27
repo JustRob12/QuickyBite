@@ -8,10 +8,43 @@ function Register() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phoneNumber: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    pronouns: 'he/him'
   });
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+        name: formData.name,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        password: formData.password,
+        pronouns: formData.pronouns
+      });
+
+      setSuccess('Registration successful! Redirecting to login...');
+
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+
+    } catch (error) {
+      setError(error.response?.data?.message || 'Registration failed');
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -20,112 +53,139 @@ function Register() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
-      });
-
-      console.log('Registration successful:', response.data);
-      navigate('/login');
-    } catch (error) {
-      setError(error.response?.data?.message || 'Registration failed');
-      console.error('Registration error:', error);
-    }
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-6xl font-bold">
             <span className="text-[#B8860B]">Quick</span>
-            <span className="text-black">Bites</span>
+            <span className="text-black dark:text-white">Bites</span>
           </h1>
-          <p className="text-sm text-gray-600">Because good things come to those who plan – morning, noon, and night.</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Because good things come to those who plan – morning, noon, and night.
+          </p>
         </div>
-        
+
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Sign Up</h2>
-          <p className="text-gray-600">Welcome! Please fill in the details to get started.</p>
+          <h2 className="text-2xl font-bold mb-2 dark:text-white">Register</h2>
+          <p className="text-gray-600 dark:text-gray-400">Create your account to get started.</p>
         </div>
 
         {error && (
-          <div className="text-red-500 text-center mb-4">
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded">
             {error}
           </div>
         )}
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        {success && (
+          <div className="mb-4 p-3 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-100 rounded">
+            {success}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm mb-2">Name</label>
-            <input 
-              type="text" 
+            <label className="block text-sm mb-2 dark:text-gray-300">Name</label>
+            <input
+              type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
               required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                focus:outline-none focus:ring-2 focus:ring-[#B8860B]"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-2">Email or Username</label>
-            <input 
-              type="email" 
+            <label className="block text-sm mb-2 dark:text-gray-300">Email</label>
+            <input
+              type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
               required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                focus:outline-none focus:ring-2 focus:ring-[#B8860B]"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-2">Password</label>
-            <input 
-              type="password" 
+            <label className="block text-sm mb-2 dark:text-gray-300">Pronouns</label>
+            <select
+              name="pronouns"
+              value={formData.pronouns}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                focus:outline-none focus:ring-2 focus:ring-[#B8860B]"
+            >
+              <option value="he/him">he/him</option>
+              <option value="she/her">she/her</option>
+              <option value="they/them">they/them</option>
+              <option value="other">other</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm mb-2 dark:text-gray-300">Phone Number</label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              placeholder="Optional"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                focus:outline-none focus:ring-2 focus:ring-[#B8860B]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm mb-2 dark:text-gray-300">Password</label>
+            <input
+              type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
               required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                focus:outline-none focus:ring-2 focus:ring-[#B8860B]"
             />
           </div>
 
           <div>
-            <label className="block text-sm mb-2">Confirm Password</label>
-            <input 
-              type="password" 
+            <label className="block text-sm mb-2 dark:text-gray-300">Confirm Password</label>
+            <input
+              type="password"
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
               required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md 
+                dark:bg-gray-800 dark:border-gray-700 dark:text-white
+                focus:outline-none focus:ring-2 focus:ring-[#B8860B]"
             />
           </div>
 
-          <button 
-            type="submit" 
-            className="w-full bg-[#B8860B] text-white py-2 rounded-md mt-4"
+          <button
+            type="submit"
+            className="w-full bg-[#B8860B] text-white py-2 rounded-md hover:bg-[#9B7506] 
+              transition-colors duration-200"
           >
             Register
           </button>
-
-          <p className="text-center text-gray-600 mt-4">
-            Don you have an account? <Link to="/login" className="text-gray-600">Login</Link>
-          </p>
         </form>
+
+        <p className="mt-4 text-center text-gray-600 dark:text-gray-400">
+          Already have an account?{' '}
+          <Link to="/login" className="text-[#B8860B] hover:underline">
+            Login here
+          </Link>
+        </p>
       </div>
     </div>
   );
