@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUserCircle, FaSignOutAlt, FaUser, FaCog, FaBell, FaMoon, FaShare } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaUser, FaCog, FaBell, FaMoon, FaShare, FaFacebook, FaTimes, FaLanguage, FaLock, FaCheck, FaExclamationCircle } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import AppearanceModal from './AppearanceModal';
 import axios from 'axios';
@@ -7,9 +7,16 @@ import axios from 'axios';
 function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showAppearanceModal, setShowAppearanceModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'system');
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [shareUsername, setShareUsername] = useState('');
+  const [shareError, setShareError] = useState('');
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -34,6 +41,27 @@ function Header() {
     };
 
     loadUserData();
+  }, []);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/notifications`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        setNotifications(response.data);
+        const unreadNotifications = response.data.filter(n => !n.read).length;
+        setUnreadCount(unreadNotifications);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
   useEffect(() => {
@@ -69,6 +97,76 @@ function Header() {
     navigate('/login');
   };
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/notifications/read-all`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
+  };
+
+  const handleShareWithUser = async () => {
+    try {
+      setShareError('');
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/notifications/share`,
+        { username: shareUsername },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      setShareUsername('');
+      setShareError('Shared successfully!');
+      setTimeout(() => setShareError(''), 3000);
+    } catch (error) {
+      setShareError(error.response?.data?.message || 'Error sharing app');
+    }
+  };
+
+  const handleDeleteNotification = async (notificationId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/notifications/${notificationId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      const updatedNotifications = notifications.filter(n => n._id !== notificationId);
+      setNotifications(updatedNotifications);
+      const unreadNotifications = updatedNotifications.filter(n => !n.read).length;
+      setUnreadCount(unreadNotifications);
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
+  const handleDeleteAllNotifications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/notifications/all`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error deleting all notifications:', error);
+    }
+  };
+
   const menuItems = [
     { 
       icon: <FaUser className="text-[#B8860B]" />, 
@@ -78,8 +176,31 @@ function Header() {
         navigate('/edit-profile');
       }
     },
-    { icon: <FaCog className="text-[#B8860B]" />, label: 'Settings' },
-    { icon: <FaBell className="text-[#B8860B]" />, label: 'Notification Settings' },
+    { 
+      icon: <FaCog className="text-[#B8860B]" />, 
+      label: 'Settings',
+      onClick: () => {
+        setShowDropdown(false);
+        setShowSettingsModal(true);
+      }
+    },
+    {
+      icon: (
+        <div className="relative">
+          <FaBell className="text-[#B8860B]" />
+          {unreadCount > 0 && (
+            <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </div>
+          )}
+        </div>
+      ),
+      label: 'Notifications',
+      onClick: () => {
+        setShowDropdown(false);
+        setShowNotificationsModal(true);
+      }
+    },
     { 
       icon: <FaMoon className="text-[#B8860B]" />, 
       label: 'Appearance',
@@ -88,9 +209,24 @@ function Header() {
         setShowAppearanceModal(true);
       }
     },
-    { icon: <FaShare className="text-[#B8860B]" />, label: 'Share App' },
+    { 
+      icon: <FaShare className="text-[#B8860B]" />, 
+      label: 'Share App',
+      onClick: () => {
+        setShowDropdown(false);
+        setShowShareModal(true);
+      }
+    },
     { icon: <FaSignOutAlt className="text-[#B8860B]" />, label: 'Logout', onClick: handleLogout },
   ];
+
+  const handleShare = (platform) => {
+    const url = 'https://quicky-bite-jnjc.vercel.app/';
+    
+    if (platform === 'facebook') {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+    }
+  };
 
   return (
     <>
@@ -172,12 +308,206 @@ function Header() {
       </div>
 
       {/* Appearance Modal */}
-      <AppearanceModal
-        isOpen={showAppearanceModal}
-        onClose={() => setShowAppearanceModal(false)}
-        onThemeChange={setTheme}
-        currentTheme={theme}
-      />
+      {showAppearanceModal && (
+        <AppearanceModal
+          isOpen={showAppearanceModal}
+          onClose={() => setShowAppearanceModal(false)}
+          onThemeChange={setTheme}
+          currentTheme={theme}
+        />
+      )}
+      
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 relative">
+            <button
+              onClick={() => setShowShareModal(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <FaTimes />
+            </button>
+            
+            <h2 className="text-xl font-semibold mb-4 dark:text-white">Share QuickyBite</h2>
+            
+            <div className="space-y-4">
+              {/* Share Link */}
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Share this link:</p>
+                <div className="flex">
+                  <input
+                    type="text"
+                    value="https://quicky-bite-jnjc.vercel.app/"
+                    readOnly
+                    className="flex-1 p-2 border rounded-l dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                  <button
+                    onClick={() => navigator.clipboard.writeText('https://quicky-bite-jnjc.vercel.app/')}
+                    className="bg-[#B8860B] text-white px-4 rounded-r hover:bg-[#9A7209]"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              {/* Share with User */}
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Share with user:</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={shareUsername}
+                    onChange={(e) => setShareUsername(e.target.value)}
+                    placeholder="Enter username"
+                    className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  />
+                  <button
+                    onClick={handleShareWithUser}
+                    className="bg-[#B8860B] text-white px-4 rounded hover:bg-[#9A7209]"
+                  >
+                    Share
+                  </button>
+                </div>
+                {shareError && (
+                  <p className={`text-sm mt-1 ${
+                    shareError === 'Shared successfully!' 
+                      ? 'text-green-500' 
+                      : 'text-red-500'
+                  }`}>
+                    {shareError}
+                  </p>
+                )}
+              </div>
+
+              {/* Social Share */}
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Share on social media:</p>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => handleShare('facebook')}
+                    className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                  >
+                    <FaFacebook />
+                    <span>Share on Facebook</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 relative">
+            <button
+              onClick={() => setShowSettingsModal(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <FaTimes />
+            </button>
+            
+            <h2 className="text-xl font-semibold mb-4 dark:text-white">Settings</h2>
+            
+            <div className="space-y-4">
+              {/* Language */}
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer transition-colors">
+                <div className="flex items-center space-x-3">
+                  <FaLanguage className="text-[#B8860B] text-xl" />
+                  <div>
+                    <h3 className="font-medium dark:text-white">Language</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Change app language</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy & Security */}
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer transition-colors">
+                <div className="flex items-center space-x-3">
+                  <FaLock className="text-[#B8860B] text-xl" />
+                  <div>
+                    <h3 className="font-medium dark:text-white">Privacy & Security</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Manage your privacy settings</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Notifications Modal */}
+      {showNotificationsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[480px] max-h-[600px] relative">
+            <button
+              onClick={() => setShowNotificationsModal(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              <FaTimes />
+            </button>
+            
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold dark:text-white">Notifications</h2>
+              {notifications.length > 0 && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    Mark all as read
+                  </button>
+                  <button
+                    onClick={handleDeleteAllNotifications}
+                    className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                  >
+                    Delete all
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3 overflow-y-auto max-h-[480px]">
+              {notifications.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  No notifications yet
+                </div>
+              ) : (
+                notifications.map(notification => (
+                  <div
+                    key={notification._id}
+                    className={`p-4 mb-2 rounded-lg ${
+                      notification.read
+                        ? 'bg-gray-50 dark:bg-gray-800'
+                        : 'bg-blue-50 dark:bg-blue-900'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-grow">
+                        <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                          {notification.message}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {new Date(notification.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteNotification(notification._id)}
+                        className="ml-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

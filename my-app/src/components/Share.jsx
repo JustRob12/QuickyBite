@@ -1,91 +1,102 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BottomBar from './BottomBar';
 import Header from './Header';
 import { format } from 'date-fns';
+import { FaShare, FaCopy, FaEnvelope } from 'react-icons/fa';
+import axios from 'axios';
 
 function Share() {
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState('');
   const [modalTitle, setModalTitle] = useState('');
+  const [email, setEmail] = useState('');
+  const [shareError, setShareError] = useState('');
+  const [shareSuccess, setShareSuccess] = useState('');
+  const [shareType, setShareType] = useState('');
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/user`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUserName(response.data.name);
+      } catch (error) {
+        console.error('Error fetching user name:', error);
+      }
+    };
+    fetchUserName();
+  }, []);
 
   const handleCopyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(modalContent);
       alert('Copied to clipboard!');
-    } catch (error) {
-      console.error('Failed to copy:', error);
-      alert('Failed to copy to clipboard');
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
     }
   };
 
   const handleSendGmail = () => {
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&body=${encodeURIComponent(modalContent)}&su=${encodeURIComponent(modalTitle)}`;
-    window.open(gmailUrl, '_blank');
+    const subject = encodeURIComponent(`QuickyBite - ${modalTitle}`);
+    const body = encodeURIComponent(modalContent);
+    window.open(`mailto:?subject=${subject}&body=${body}`);
   };
 
   const handleShareFoodList = async () => {
     try {
-      setIsLoading(true);
       const token = localStorage.getItem('token');
       
       const today = new Date();
       const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
       const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
       
-      const response = await fetch(
+      const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/food/range?start=${format(startDate, 'yyyy-MM-dd')}&end=${format(endDate, 'yyyy-MM-dd')}`,
         {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
-      if (!response.ok) throw new Error('Failed to fetch meals');
-      const meals = await response.json();
-      
-      const mealsByDate = meals.reduce((acc, meal) => {
-        const date = format(new Date(meal.date), 'MMM dd, yyyy');
+      const mealsByDate = response.data.reduce((acc, meal) => {
+        const date = format(new Date(meal.date), 'MMMM d, yyyy');
         if (!acc[date]) acc[date] = [];
-        acc[date].push(`${meal.type}: ${meal.mealName}${meal.additionalDish ? `, ${meal.additionalDish}` : ''}${meal.sideDish ? `, ${meal.sideDish}` : ''}`);
+        acc[date].push(`- ${meal.type}: ${meal.mealName}${meal.additionalDish ? `, ${meal.additionalDish}` : ''}${meal.sideDish ? `, ${meal.sideDish}` : ''}`);
         return acc;
       }, {});
 
-      const emailBody = Object.entries(mealsByDate)
-        .map(([date, meals]) => `${date}\n${meals.join('\n')}`)
+      let formattedContent = `Food Calendar shared by ${userName}\n`;
+      formattedContent += `${format(new Date(), 'MMMM d, yyyy h:mm a')}\n\n`;
+
+      const datesContent = Object.entries(mealsByDate)
+        .map(([date, meals]) => `${date}:\n${meals.join('\n')}`)
         .join('\n\n');
 
-      setModalContent(emailBody);
-      setModalTitle('My Food Calendar');
-      setShowModal(true);
+      formattedContent += datesContent || 'No meals found for this month';
 
+      setModalTitle('Food Calendar');
+      setModalContent(formattedContent);
+      setShareType('food');
+      setShowModal(true);
     } catch (error) {
-      console.error('Error sharing food list:', error);
-      alert('Failed to share food list');
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching food calendar:', error);
     }
   };
 
   const handleShareShoppingList = async () => {
     try {
-      setIsLoading(true);
       const token = localStorage.getItem('token');
-      
-      const response = await fetch(
+      const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/shopping-list`,
         {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
-      if (!response.ok) throw new Error('Failed to fetch shopping list');
-      const items = await response.json();
-      
-      const { completed, pending } = items.reduce(
+      const { completed, pending } = response.data.reduce(
         (acc, item) => {
           if (item.isCompleted) {
             acc.completed.push(item);
@@ -97,33 +108,63 @@ function Share() {
         { completed: [], pending: [] }
       );
 
-      let emailBody = 'Shopping List\n\n';
+      let formattedContent = `Shopping List shared by ${userName}\n`;
+      formattedContent += `${format(new Date(), 'MMMM d, yyyy h:mm a')}\n\n`;
       
       if (pending.length > 0) {
-        emailBody += 'Pending Items:\n';
-        emailBody += pending
-          .map(item => `• ${item.itemName}${item.quantity ? ` (${item.quantity})` : ''}`)
+        formattedContent += 'Pending Items:\n';
+        formattedContent += pending
+          .map(item => `- ${item.itemName}${item.quantity ? ` (${item.quantity})` : ''}`)
           .join('\n');
       }
 
       if (completed.length > 0) {
-        emailBody += '\n\nCompleted Items:\n';
-        emailBody += completed
+        formattedContent += '\n\nCompleted Items:\n';
+        formattedContent += completed
           .map(item => `✓ ${item.itemName}${item.quantity ? ` (${item.quantity})` : ''}`)
           .join('\n');
       }
 
-      if (items.length === 0) {
-        emailBody += 'No items in shopping list';
+      if (pending.length === 0 && completed.length === 0) {
+        formattedContent += 'No items in shopping list';
       }
 
-      setModalContent(emailBody);
-      setModalTitle('My Shopping List');
+      setModalTitle('Shopping List');
+      setModalContent(formattedContent);
+      setShareType('shopping');
       setShowModal(true);
-
     } catch (error) {
-      console.error('Error sharing shopping list:', error);
-      alert('Failed to share shopping list');
+      console.error('Error fetching shopping list:', error);
+    }
+  };
+
+  const handleShareWithUser = async () => {
+    try {
+      setShareError('');
+      setShareSuccess('');
+      setIsLoading(true);
+      const token = localStorage.getItem('token');
+      
+      let message = '';
+      if (shareType === 'food') {
+        message = `Food Calendar:\n${modalContent}`;
+      } else if (shareType === 'shopping') {
+        message = `Shopping List:\n${modalContent}`;
+      }
+
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/notifications/share`,
+        { email, message },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      setEmail('');
+      setShareSuccess('List shared successfully!');
+      setTimeout(() => setShareSuccess(''), 3000);
+    } catch (error) {
+      setShareError(error.response?.data?.message || 'Error sharing list');
+      setTimeout(() => setShareError(''), 3000);
     } finally {
       setIsLoading(false);
     }
@@ -142,7 +183,7 @@ function Share() {
               hover:bg-[#B8860B] hover:text-white transition-colors
               dark:text-[#B8860B] dark:hover:text-white"
           >
-            Share your Food List
+            Share your Food Calendar
           </button>
         </div>
 
@@ -174,25 +215,64 @@ function Share() {
               </pre>
             </div>
             
-            <div className="p-6 border-t flex gap-3">
-              <button
-                onClick={handleCopyToClipboard}
-                className="flex-1 px-4 py-2 text-[#B8860B] border-2 border-[#B8860B] rounded-xl hover:bg-gray-50"
-              >
-                Copy Text
-              </button>
-              <button
-                onClick={handleSendGmail}
-                className="flex-1 px-4 py-2 text-white bg-[#B8860B] rounded-xl hover:bg-[#9e7209]"
-              >
-                Send via Gmail
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-xl"
-              >
-                Close
-              </button>
+            <div className="p-6 border-t dark:border-gray-700 space-y-4">
+              {/* Email sharing section */}
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter user's email"
+                  className="flex-1 px-4 py-2 rounded-xl border-2 border-gray-200 dark:border-gray-700 
+                    bg-white dark:bg-gray-800 text-gray-800 dark:text-white 
+                    focus:border-[#B8860B] dark:focus:border-[#B8860B] outline-none"
+                />
+                <button
+                  onClick={handleShareWithUser}
+                  disabled={isLoading || !email.trim()}
+                  className={`px-4 py-2 rounded-xl flex items-center gap-2
+                    ${isLoading || !email.trim() 
+                      ? 'bg-gray-300 cursor-not-allowed' 
+                      : 'bg-[#B8860B] hover:bg-[#9e7209]'} 
+                    text-white transition-colors`}
+                >
+                  <FaShare />
+                  Share
+                </button>
+              </div>
+              
+              {shareError && (
+                <p className="text-red-500 text-sm">{shareError}</p>
+              )}
+              {shareSuccess && (
+                <p className="text-green-500 text-sm">{shareSuccess}</p>
+              )}
+
+              {/* Other sharing options */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCopyToClipboard}
+                  className="flex-1 px-4 py-2 text-[#B8860B] border-2 border-[#B8860B] rounded-xl 
+                    hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center justify-center gap-2"
+                >
+                  <FaCopy />
+                  Copy Text
+                </button>
+                <button
+                  onClick={handleSendGmail}
+                  className="flex-1 px-4 py-2 text-white bg-[#B8860B] rounded-xl 
+                    hover:bg-[#9e7209] flex items-center justify-center gap-2"
+                >
+                  <FaEnvelope />
+                  Send via Gmail
+                </button>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -203,4 +283,4 @@ function Share() {
   );
 }
 
-export default Share; 
+export default Share;
