@@ -11,7 +11,9 @@ function BottomBar() {
         <Link 
           to="/calendar" 
           className={`flex flex-col items-center p-2 ${
-            location.pathname === '/calendar' ? 'text-[#B8860B]' : 'text-gray-600 dark:text-gray-400'
+            location.pathname === '/calendar' 
+              ? 'text-[#B8860B]' 
+              : 'text-gray-400 dark:text-gray-400'
           }`}
         >
           <FaCalendarAlt className="text-xl mb-1" />
@@ -21,7 +23,9 @@ function BottomBar() {
         <Link 
           to="/groceries" 
           className={`flex flex-col items-center p-2 ${
-            location.pathname === '/groceries' ? 'text-[#B8860B]' : 'text-gray-600'
+            location.pathname === '/groceries' 
+              ? 'text-[#B8860B]' 
+              : 'text-gray-400 dark:text-gray-400'
           }`}
         >
           <FaShoppingBasket className="text-xl mb-1" />
@@ -31,7 +35,9 @@ function BottomBar() {
         <Link 
           to="/share" 
           className={`flex flex-col items-center p-2 ${
-            location.pathname === '/share' ? 'text-[#B8860B]' : 'text-gray-600'
+            location.pathname === '/share' 
+              ? 'text-[#B8860B]' 
+              : 'text-gray-400 dark:text-gray-400'
           }`}
         >
           <FaShareAlt className="text-xl mb-1" />
