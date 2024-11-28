@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import BottomBar from './BottomBar';
 import Header from './Header';
-import { FaTrash } from 'react-icons/fa';
+import { FaTrash, FaTimes } from 'react-icons/fa';
 import AddItemModal from './AddItemModal';
 
 function Groceries() {
@@ -9,6 +9,11 @@ function Groceries() {
   const [shoppingList, setShoppingList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   // Fetch shopping list
   useEffect(() => {
@@ -35,6 +40,13 @@ function Groceries() {
     fetchShoppingList();
   }, []);
 
+  const showNotification = (message, type) => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 3000);
+  };
+
   // Add item to shopping list
   const handleAddItem = async (item) => {
     try {
@@ -52,8 +64,9 @@ function Groceries() {
       
       const updatedList = await response.json();
       setShoppingList(updatedList);
+      showNotification('Item added successfully!', 'success');
     } catch (error) {
-      setError(error.message);
+      showNotification(error.message, 'error');
     }
   };
 
@@ -79,11 +92,17 @@ function Groceries() {
     }
   };
 
+  // Confirm delete modal
+  const confirmDelete = (itemId) => {
+    setItemToDelete(itemId);
+    setShowDeleteConfirm(true);
+  };
+
   // Add delete functionality
-  const handleDeleteItem = async (itemId) => {
+  const handleDeleteItem = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/shopping-list/item/${itemId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/shopping-list/item/${itemToDelete}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -94,14 +113,65 @@ function Groceries() {
       
       const updatedList = await response.json();
       setShoppingList(updatedList);
+      showNotification('Item deleted successfully!', 'success');
     } catch (error) {
-      setError(error.message);
+      showNotification(error.message, 'error');
+    } finally {
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
+      
+      {/* Alert Notification */}
+      {showAlert && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 
+          ${alertType === 'success' ? 'bg-green-500' : 'bg-red-500'} 
+          text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 
+          animate-fade-in-down`}>
+          <span>{alertMessage}</span>
+          <button 
+            onClick={() => setShowAlert(false)}
+            className="ml-2 text-white hover:text-gray-200"
+          >
+            <FaTimes />
+          </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-4 dark:text-white">
+              Delete Item
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete this item?
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 
+                  dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteItem}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 
+                  transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="p-4">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-semibold dark:text-white">Shopping List</h1>
@@ -132,11 +202,13 @@ function Groceries() {
                     }`}>
                       {item.itemName}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{item.quantity}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {item.quantity}
+                    </p>
                   </div>
                   <div className="flex items-center gap-4">
                     <button
-                      onClick={() => handleDeleteItem(item._id)}
+                      onClick={() => confirmDelete(item._id)}
                       className="text-red-500 hover:text-red-700 transition-colors"
                       aria-label="Delete item"
                     >

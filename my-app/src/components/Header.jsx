@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FaUserCircle, FaSignOutAlt, FaUser, FaCog, FaBell, FaMoon, FaShare, FaFacebook, FaTimes, FaLanguage, FaLock, FaCheck, FaExclamationCircle } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaUser, FaCog, FaBell, FaMoon, FaShare, FaFacebook, FaTimes, FaLanguage, FaLock, FaCheck, FaExclamationCircle, FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import AppearanceModal from './AppearanceModal';
 import axios from 'axios';
+import { format } from 'date-fns';
 
 function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -18,6 +19,8 @@ function Header() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+  const [expandedNotifications, setExpandedNotifications] = useState({});
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -34,7 +37,10 @@ function Header() {
         setUser({
           ...userData,
           profilePicture: userData.profilePicture ? 
-            `${import.meta.env.VITE_API_URL}/${userData.profilePicture}` : null
+            (userData.profilePicture.startsWith('http') ? 
+              userData.profilePicture : 
+              `${import.meta.env.VITE_API_URL}/${userData.profilePicture.replace(/^\//, '')}`
+            ) : null
         });
       } catch (error) {
         console.error('Error loading user data:', error);
@@ -233,6 +239,13 @@ function Header() {
     }
   };
 
+  const toggleNotification = (notificationId) => {
+    setExpandedNotifications(prev => ({
+      ...prev,
+      [notificationId]: !prev[notificationId]
+    }));
+  };
+
   return (
     <>
       <div className="bg-white dark:bg-gray-900 p-4 shadow-sm relative">
@@ -292,7 +305,7 @@ function Header() {
                   <button
                     key={index}
                     onClick={item.onClick || (() => {})}
-                    className="w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                    className="w-full px-4 py-2 text-left text-gray-700 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors"
                   >
                     {item.icon}
                     <span>{item.label}</span>
@@ -418,35 +431,48 @@ function Header() {
       {/* Notifications Modal */}
       {showNotificationsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-[480px] max-h-[600px] relative">
-            <button
-              onClick={() => setShowNotificationsModal(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              <FaTimes />
-            </button>
-            
+          <div className={`bg-white dark:bg-gray-800 rounded-lg p-6 w-[480px] relative transition-all duration-300 ${
+            isCollapsed ? 'h-24' : 'max-h-[600px]'
+          }`}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold dark:text-white">Notifications</h2>
-              {notifications.length > 0 && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleMarkAllAsRead}
-                    className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                  >
-                    Mark all as read
-                  </button>
-                  <button
-                    onClick={handleDeleteAllNotifications}
-                    className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                  >
-                    Delete all
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-3 items-center">
+                {/* Collapse/Expand button with better visibility */}
+                <button
+                  onClick={() => setIsCollapsed(!isCollapsed)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg 
+                    bg-gray-100 hover:bg-gray-200 
+                    dark:bg-gray-700 dark:hover:bg-gray-600 
+                    text-gray-700 dark:text-gray-300 
+                    transition-colors duration-200"
+                >
+                  {isCollapsed ? (
+                    <>
+                      <FaChevronDown className="text-[#B8860B]" />
+                      <span className="text-sm">Expand</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaChevronUp className="text-[#B8860B]" />
+                      <span className="text-sm">Minimize</span>
+                    </>
+                  )}
+                </button>
+                {/* Close button */}
+                <button
+                  onClick={() => setShowNotificationsModal(false)}
+                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700
+                    text-gray-500 hover:text-gray-700 
+                    dark:text-gray-400 dark:hover:text-gray-200
+                    transition-colors duration-200"
+                >
+                  <FaTimes />
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-3 overflow-y-auto max-h-[480px]">
+            {/* Individual notification expand/collapse buttons */}
+            <div className={`space-y-3 overflow-y-auto ${isCollapsed ? 'hidden' : 'max-h-[480px]'}`}>
               {notifications.length === 0 ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   No notifications yet
@@ -455,7 +481,7 @@ function Header() {
                 notifications.map(notification => (
                   <div
                     key={notification._id}
-                    className={`p-4 mb-2 rounded-lg ${
+                    className={`p-4 rounded-lg transition-all ${
                       notification.read
                         ? 'bg-gray-50 dark:bg-gray-800'
                         : 'bg-blue-50 dark:bg-blue-900'
@@ -463,26 +489,58 @@ function Header() {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-grow">
-                        <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                          {notification.message}
-                        </p>
+                        {/* Preview text with more visible expand/collapse button */}
+                        <div 
+                          onClick={() => toggleNotification(notification._id)}
+                          className="cursor-pointer flex items-center gap-2 group"
+                        >
+                          <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-1 flex-grow">
+                            {notification.message}
+                          </p>
+                          <button className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                            {expandedNotifications[notification._id] ? (
+                              <FaChevronUp className="text-[#B8860B] group-hover:scale-110 transition-transform" />
+                            ) : (
+                              <FaChevronDown className="text-[#B8860B] group-hover:scale-110 transition-transform" />
+                            )}
+                          </button>
+                        </div>
+                        
+                        {/* Full content - expandable */}
+                        {expandedNotifications[notification._id] && (
+                          <div className="mt-2 pl-2 border-l-2 border-[#B8860B]">
+                            <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                              {notification.message}
+                            </p>
+                          </div>
+                        )}
+                        
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {new Date(notification.createdAt).toLocaleString()}
                         </p>
                       </div>
                       <button
                         onClick={() => handleDeleteNotification(notification._id)}
-                        className="ml-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                        className="ml-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300
+                          p-1.5 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                        </svg>
+                        <FaTrash className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
                 ))
               )}
             </div>
+
+            {/* Collapsed state summary with better visibility */}
+            {isCollapsed && (
+              <div className="text-center text-gray-600 dark:text-gray-400 font-medium">
+                {notifications.length} notification{notifications.length !== 1 ? 's' : ''}
+                {unreadCount > 0 && (
+                  <span className="text-[#B8860B]"> ({unreadCount} unread)</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

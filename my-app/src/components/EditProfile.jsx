@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FaUserCircle, FaCamera, FaArrowLeft } from 'react-icons/fa';
+import { FaUserCircle, FaCamera, FaArrowLeft, FaTimes } from 'react-icons/fa';
 import Header from './Header';
 
 function EditProfile() {
@@ -19,6 +19,9 @@ function EditProfile() {
     pronouns: false
   });
   const [error, setError] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState('');
   const navigate = useNavigate();
 
   // Load user data immediately
@@ -41,7 +44,11 @@ function EditProfile() {
           email: userData.email || '',
           phoneNumber: userData.phoneNumber || '',
           pronouns: userData.pronouns || 'he/him',
-          profileImage: userData.profilePicture ? `${import.meta.env.VITE_API_URL}/${userData.profilePicture}` : null
+          profileImage: userData.profilePicture ? 
+            (userData.profilePicture.startsWith('http') ? 
+              userData.profilePicture : 
+              `${import.meta.env.VITE_API_URL}/${userData.profilePicture.replace(/^\//, '')}`
+            ) : null
         });
       } catch (error) {
         console.error('Error loading user data:', error);
@@ -51,6 +58,14 @@ function EditProfile() {
 
     loadUserData();
   }, []);
+
+  // Add notification helper
+  const showNotification = (message, type) => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 3000);
+  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -72,25 +87,25 @@ function EditProfile() {
         }
       );
 
-      // Update the profile image with the full URL
-      const imageUrl = `${import.meta.env.VITE_API_URL}/${response.data.profilePicture}`;
+      const imageUrl = response.data.profilePicture.startsWith('http') ?
+        response.data.profilePicture :
+        `${import.meta.env.VITE_API_URL}/${response.data.profilePicture.replace(/^\//, '')}`;
       
       setProfileData(prev => ({
         ...prev,
         profileImage: imageUrl
       }));
 
-      // Update localStorage
       const currentUser = JSON.parse(localStorage.getItem('user'));
       localStorage.setItem('user', JSON.stringify({
         ...currentUser,
-        profilePicture: response.data.profilePicture
+        profilePicture: imageUrl
       }));
 
-      console.log('Profile picture updated:', imageUrl); // Debug log
+      showNotification('Profile picture updated successfully!', 'success');
     } catch (error) {
       console.error('Error uploading profile picture:', error);
-      setError('Error uploading profile picture');
+      showNotification(error.response?.data?.message || 'Error uploading profile picture', 'error');
     }
   };
 
@@ -136,9 +151,9 @@ function EditProfile() {
         pronouns: false
       });
       
-      setError('');
+      showNotification('Profile updated successfully!', 'success');
     } catch (error) {
-      setError(error.response?.data?.message || 'Error updating profile');
+      showNotification(error.response?.data?.message || 'Error updating profile', 'error');
     }
   };
 
@@ -169,14 +184,15 @@ function EditProfile() {
         pronouns: newPronouns
       }));
 
-      // Update localStorage
       const currentUser = JSON.parse(localStorage.getItem('user'));
       localStorage.setItem('user', JSON.stringify({
         ...currentUser,
         pronouns: newPronouns
       }));
+
+      showNotification('Pronouns updated successfully!', 'success');
     } catch (error) {
-      setError(error.response?.data?.message || 'Error updating pronouns');
+      showNotification(error.response?.data?.message || 'Error updating pronouns', 'error');
     }
   };
 
@@ -227,6 +243,23 @@ function EditProfile() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
+
+      {/* Alert Notification */}
+      {showAlert && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 
+          ${alertType === 'success' ? 'bg-green-500' : 'bg-red-500'} 
+          text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 
+          animate-fade-in-down`}>
+          <span>{alertMessage}</span>
+          <button 
+            onClick={() => setShowAlert(false)}
+            className="ml-2 text-white hover:text-gray-200"
+          >
+            <FaTimes />
+          </button>
+        </div>
+      )}
+
       <div className="max-w-2xl mx-auto p-4">
         <button
           onClick={() => navigate('/calendar')}

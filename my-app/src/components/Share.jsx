@@ -221,7 +221,7 @@ function Share() {
 
               {/* Content Preview */}
               <div className="mb-4">
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 max-h-60 overflow-y-auto whitespace-pre-wrap text-sm">
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 max-h-60 overflow-y-auto whitespace-pre-wrap text-sm text-gray-900 dark:text-white">
                   {modalContent}
                 </div>
               </div>

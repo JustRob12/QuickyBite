@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import BottomBar from './BottomBar';
 import Header from './Header';
-import { FaCalendarAlt, FaCoffee, FaUtensils, FaWineGlass, FaCookie, FaChevronLeft, FaChevronRight, FaTrash } from 'react-icons/fa';
+import { FaCalendarAlt, FaCoffee, FaUtensils, FaWineGlass, FaCookie, FaChevronLeft, FaChevronRight, FaTrash, FaTimes } from 'react-icons/fa';
 import Calendar from './Calendar';
 import { addWeeks, subWeeks, format, startOfWeek, endOfWeek, addDays } from 'date-fns';
 import AddMealModal from './AddMealModal';
@@ -18,6 +18,11 @@ function FoodCalendar() {
   const [meals, setMeals] = useState([]);
   const [error, setError] = useState(null);
   const [editingMeal, setEditingMeal] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [mealToDelete, setMealToDelete] = useState(null);
 
   // Generate week dates starting from currentWeekStart
   const getWeekDates = (startDate) => {
@@ -103,6 +108,15 @@ function FoodCalendar() {
     fetchMeals(selectedDate);
   }, [selectedDate]);
 
+  // Add notification helper
+  const showNotification = (message, type) => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 3000);
+  };
+
+  // Modify handleSaveMeal
   const handleSaveMeal = async (mealData) => {
     try {
       const token = localStorage.getItem('token');
@@ -137,18 +151,23 @@ function FoodCalendar() {
         throw new Error(`Failed to ${editingMeal ? 'update' : 'save'} meal`);
       }
 
-      // Refresh meals
       await fetchMeals(selectedDate);
       setShowMealModal(false);
       setEditingMeal(null);
+      showNotification(`Meal ${editingMeal ? 'updated' : 'added'} successfully!`, 'success');
     } catch (error) {
       console.error('Error saving meal:', error);
-      setError(error.message);
+      showNotification(error.message, 'error');
     }
   };
 
-  // Add delete handler
-  const handleDeleteMeal = async (mealId) => {
+  // Modify delete handler
+  const confirmDelete = (mealId) => {
+    setMealToDelete(mealId);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteMeal = async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -156,7 +175,7 @@ function FoodCalendar() {
         return;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/food/${mealId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/food/${mealToDelete}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -172,15 +191,18 @@ function FoodCalendar() {
         throw new Error('Failed to delete meal');
       }
 
-      // Refresh meals after deletion
       await fetchMeals(selectedDate);
+      showNotification('Meal deleted successfully!', 'success');
     } catch (error) {
       console.error('Error deleting meal:', error);
-      setError(error.message);
+      showNotification(error.message, 'error');
+    } finally {
+      setShowDeleteConfirm(false);
+      setMealToDelete(null);
     }
   };
 
-  // Update renderMealSection
+  // Modify renderMealSection to use confirmDelete
   const renderMealSection = (icon, type) => {
     const mealOfType = Array.isArray(meals) ? meals.find(meal => meal.type === type) : null;
 
@@ -199,7 +221,7 @@ function FoodCalendar() {
           </div>
           {mealOfType ? (
             <button 
-              onClick={() => handleDeleteMeal(mealOfType._id)}
+              onClick={() => confirmDelete(mealOfType._id)}
               className="text-red-500 hover:text-red-700 p-2"
               title="Delete meal"
             >
@@ -268,6 +290,53 @@ function FoodCalendar() {
   return (
     <div className="pb-20 dark:bg-gray-900">
       <Header />
+
+      {/* Alert Notification */}
+      {showAlert && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 
+          ${alertType === 'success' ? 'bg-green-500' : 'bg-red-500'} 
+          text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 
+          animate-fade-in-down`}>
+          <span>{alertMessage}</span>
+          <button 
+            onClick={() => setShowAlert(false)}
+            className="ml-2 text-white hover:text-gray-200"
+          >
+            <FaTimes />
+          </button>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-sm">
+            <h3 className="text-lg font-semibold mb-4 dark:text-white">
+              Delete Meal
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete this meal?
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 
+                  dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteMeal}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 
+                  transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="p-4">
         {/* Calendar Toggle */}
         <div className="flex justify-between items-center mb-4">

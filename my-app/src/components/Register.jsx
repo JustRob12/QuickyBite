@@ -15,14 +15,17 @@ function Register() {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setIsLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setIsLoading(false);
       return;
     }
 
@@ -43,6 +46,8 @@ function Register() {
 
     } catch (error) {
       setError(error.response?.data?.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -55,6 +60,16 @@ function Register() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900">
+      {/* Loading Overlay with Tailwind Animation */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 flex flex-col items-center">
+            <div className="w-12 h-12 mb-4 border-4 border-gray-200 border-t-[#B8860B] rounded-full animate-spin dark:border-gray-700 dark:border-t-[#B8860B]"></div>
+            <p className="text-gray-700 dark:text-gray-300 animate-pulse">Creating your account...</p>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-6xl font-bold">
@@ -173,10 +188,12 @@ function Register() {
 
           <button
             type="submit"
-            className="w-full bg-[#B8860B] text-white py-2 rounded-md hover:bg-[#9B7506] 
-              transition-colors duration-200"
+            className="w-full bg-[#B8860B] text-white py-2 rounded-md 
+              hover:bg-[#9B7506] transition-colors duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            Register
+            {isLoading ? 'Creating Account...' : 'Register'}
           </button>
         </form>
 

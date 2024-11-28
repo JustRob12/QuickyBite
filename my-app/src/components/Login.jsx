@@ -6,6 +6,7 @@ import axios from 'axios';
 function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -21,6 +22,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
@@ -28,20 +30,27 @@ function Login() {
         password: formData.password
       });
 
-      // Store the token in localStorage
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      // Navigate to home or dashboard
-      navigate('/calendar'); // You'll need to create this route
+      navigate('/calendar');
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed');
-      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900">
+      {isLoading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 flex flex-col items-center">
+            <div className="w-12 h-12 mb-4 border-4 border-gray-200 border-t-[#B8860B] rounded-full animate-spin dark:border-gray-700 dark:border-t-[#B8860B]"></div>
+            <p className="text-gray-700 dark:text-gray-300 animate-pulse">Logging in...</p>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-6xl font-bold">
@@ -83,9 +92,12 @@ function Login() {
 
           <button 
             type="submit" 
-            className="w-full bg-[#B8860B] text-white py-2 rounded-md mt-4"
+            className="w-full bg-[#B8860B] text-white py-2 rounded-md mt-4 
+              hover:bg-[#9B7506] transition-colors duration-200 
+              disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </button>
 
           <p className="text-center text-gray-600 mt-4">
