@@ -213,16 +213,16 @@ function FoodCalendar() {
     };
 
     return (
-      <div className="bg-[#FFF8DC] dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
             {icon}
-            <span className="font-medium dark:text-white">{type}</span>
+            <span className="font-medium text-gray-900 dark:text-white">{type}</span>
           </div>
           {mealOfType ? (
             <button 
               onClick={() => confirmDelete(mealOfType._id)}
-              className="text-red-500 hover:text-red-700 p-2"
+              className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-2"
               title="Delete meal"
             >
               <FaTrash size={16} />
@@ -234,7 +234,7 @@ function FoodCalendar() {
                 setSelectedMealType(type);
                 setShowMealModal(true);
               }} 
-              className="text-[#B8860B] text-xl"
+              className="text-[#B8860B] text-xl hover:text-[#9A7209] dark:text-[#B8860B] dark:hover:text-[#9A7209]"
             >
               +
             </button>
@@ -242,10 +242,10 @@ function FoodCalendar() {
         </div>
         {mealOfType ? (
           <div 
-            className="text-sm cursor-pointer hover:bg-[#FFF3D6] dark:hover:bg-gray-700 p-2 rounded-lg"
+            className="text-sm cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 p-2 rounded-lg transition-colors"
             onClick={() => handleMealClick(mealOfType)}
           >
-            <p className="font-medium dark:text-white">{mealOfType.mealName}</p>
+            <p className="font-medium text-gray-900 dark:text-white">{mealOfType.mealName}</p>
             {mealOfType.additionalDish && (
               <p className="text-gray-600 dark:text-gray-400">+ {mealOfType.additionalDish}</p>
             )}
@@ -288,7 +288,7 @@ function FoodCalendar() {
   };
 
   return (
-    <div className="pb-20 dark:bg-gray-900">
+    <div className="min-h-screen pb-20 bg-white dark:bg-gray-900">
       <Header />
 
       {/* Alert Notification */}
@@ -337,7 +337,7 @@ function FoodCalendar() {
         </div>
       )}
 
-      <div className="p-4">
+      <div className="p-4 bg-white dark:bg-gray-900">
         {/* Calendar Toggle */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold dark:text-white">
@@ -400,34 +400,45 @@ function FoodCalendar() {
           {renderMealSection(<FaWineGlass className="text-[#B8860B]" />, "Dinner")}
           {renderMealSection(<FaCookie className="text-[#B8860B]" />, "Snack")}
         </div>
+
+        {/* Add Meal Modal */}
+        {showMealModal && (
+          <AddMealModal
+            isOpen={showMealModal}
+            onClose={() => {
+              setShowMealModal(false);
+              setEditingMeal(null);
+            }}
+            mealType={selectedMealType}
+            onSave={handleSaveMeal}
+            existingMeal={editingMeal}
+          />
+        )}
+
+        {/* Full Calendar Modal */}
+        {showFullCalendar && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md relative">
+              <button
+                onClick={() => setShowFullCalendar(false)}
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <FaTimes />
+              </button>
+              <Calendar
+                selectedDate={selectedDate}
+                onSelectDate={(date) => {
+                  setSelectedDate(date);
+                  setShowFullCalendar(false);
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
       <BottomBar />
-      
-      {showFullCalendar && (
-        <Calendar
-          selectedDate={selectedDate}
-          onSelectDate={(date) => {
-            setSelectedDate(date);
-            setCurrentWeekStart(date);
-          }}
-          onClose={() => setShowFullCalendar(false)}
-          meals={meals}
-        />
-      )}
-
-      {/* Add Meal Modal */}
-      <AddMealModal
-        isOpen={showMealModal}
-        onClose={() => {
-          setShowMealModal(false);
-          setEditingMeal(null);
-        }}
-        mealType={selectedMealType}
-        onSave={handleSaveMeal}
-        existingMeal={editingMeal}
-      />
     </div>
   );
 }
 
-export default FoodCalendar; 
+export default FoodCalendar;
