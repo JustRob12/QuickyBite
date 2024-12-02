@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUserCircle, FaSignOutAlt, FaUser, FaCog, FaBell, FaMoon, FaShare, FaFacebook, FaTimes, FaLanguage, FaLock, FaCheck, FaExclamationCircle, FaTrash, FaChevronDown, FaChevronUp, FaSun, FaLaptop } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaUser, FaCog, FaBell, FaMoon, FaShare, FaFacebook, FaTimes, FaLanguage, FaLock, FaCheck, FaExclamationCircle, FaTrash, FaChevronDown, FaChevronUp, FaSun, FaLaptop, FaUserFriends } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
 import AppearanceModal from './AppearanceModal';
 import axios from 'axios';
@@ -26,6 +26,9 @@ function Header() {
   const [darkMode, setDarkMode] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [requestCount, setRequestCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -95,6 +98,48 @@ function Header() {
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
   }, [theme]);
+
+  useEffect(() => {
+    const fetchFriendRequests = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/friends/requests`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const newRequestCount = response.data.received.length;
+        setRequestCount(newRequestCount);
+        updateTotalCount(newRequestCount, notificationCount);
+      } catch (error) {
+        console.error('Error fetching friend requests:', error);
+      }
+    };
+
+    fetchFriendRequests();
+  }, [notificationCount]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/notifications`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const unreadCount = response.data.filter(n => !n.read).length;
+        setNotificationCount(unreadCount);
+        updateTotalCount(requestCount, unreadCount);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchNotifications();
+  }, [requestCount]);
+
+  const updateTotalCount = (requests, notifications) => {
+    setTotalCount(requests + notifications);
+  };
 
   const handleLogout = () => {
     setShowLogoutConfirmation(true);
@@ -223,6 +268,14 @@ function Header() {
         navigate('/edit-profile');
       }
     },
+    {
+      icon: <FaUserFriends className="text-[#B8860B]" />,
+      label: 'Friends',
+      onClick: () => {
+        setShowDropdown(false);
+        navigate('/friends');
+      }
+    },
     { 
       icon: <FaCog className="text-[#B8860B]" />, 
       label: 'Settings',
@@ -332,18 +385,28 @@ function Header() {
             >
               <div className="relative">
                 {user?.profilePicture ? (
-                  <img
-                    src={user.profilePicture}
-                    alt="Profile"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-[#B8860B]"
-                  />
+                  <div className="relative">
+                    <img
+                      src={user.profilePicture}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                    {totalCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs 
+                        rounded-full h-5 w-5 flex items-center justify-center">
+                        {totalCount}
+                      </span>
+                    )}
+                  </div>
                 ) : (
-                  <FaUserCircle className="w-8 h-8 text-gray-500 dark:text-gray-400" />
-                )}
-                {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 flex items-center justify-center 
-                    min-w-[20px] h-5 bg-red-500 text-white text-xs rounded-full px-1">
-                    {unreadCount}
+                  <div className="relative">
+                    <FaUserCircle className="w-8 h-8 text-gray-500" />
+                    {totalCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs 
+                        rounded-full h-5 w-5 flex items-center justify-center">
+                        {totalCount}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -367,6 +430,24 @@ function Header() {
                     Edit Profile
                   </Link>
 
+                  <Link
+                    to="/friends"
+                    className="flex items-center justify-between px-4 py-2 text-sm text-gray-700 
+                      dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <FaUserFriends className="w-4 h-4" />
+                      Friends
+                    </div>
+                    {requestCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full 
+                        h-5 w-5 flex items-center justify-center">
+                        {requestCount}
+                      </span>
+                    )}
+                  </Link>
+
                   <button
                     onClick={() => {
                       setShowSettingsModal(true);
@@ -384,14 +465,17 @@ function Header() {
                       setShowNotificationsModal(true);
                       setShowDropdown(false);
                     }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 
+                    className="flex items-center justify-between w-full px-4 py-2 text-sm text-gray-700 
                       dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
                   >
-                    <FaBell className="w-4 h-4" />
-                    Notifications
-                    {unreadCount > 0 && (
-                      <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                        {unreadCount}
+                    <div className="flex items-center gap-2">
+                      <FaBell className="w-4 h-4" />
+                      Notifications
+                    </div>
+                    {notificationCount > 0 && (
+                      <span className="bg-red-500 text-white text-xs rounded-full 
+                        h-5 w-5 flex items-center justify-center">
+                        {notificationCount}
                       </span>
                     )}
                   </button>

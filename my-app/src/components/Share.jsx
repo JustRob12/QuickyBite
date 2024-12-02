@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BottomBar from './BottomBar';
 import Header from './Header';
 import { format } from 'date-fns';
-import { FaShare, FaCopy, FaEnvelope, FaTimes, FaCheck } from 'react-icons/fa';
+import { FaShare, FaCopy, FaEnvelope, FaTimes, FaCheck, FaUserFriends } from 'react-icons/fa';
 import axios from 'axios';
 import burger from '../assets/burger-blur.png';
 import pizza from '../assets/pizza-blur.png';
@@ -13,11 +13,12 @@ function Share() {
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState('');
   const [modalTitle, setModalTitle] = useState('');
-  const [email, setEmail] = useState('');
   const [shareError, setShareError] = useState('');
   const [shareSuccess, setShareSuccess] = useState('');
   const [shareType, setShareType] = useState('');
   const [userName, setUserName] = useState('');
+  const [friends, setFriends] = useState([]);
+  const [selectedFriendId, setSelectedFriendId] = useState('');
 
   useEffect(() => {
     const fetchUserName = async () => {
@@ -32,6 +33,22 @@ function Share() {
       }
     };
     fetchUserName();
+  }, []);
+
+  useEffect(() => {
+    const fetchFriends = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/friends/list`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setFriends(response.data);
+      } catch (error) {
+        console.error('Error fetching friends:', error);
+      }
+    };
+    fetchFriends();
   }, []);
 
   const handleCopyToClipboard = async () => {
@@ -148,6 +165,15 @@ function Share() {
       setIsLoading(true);
       const token = localStorage.getItem('token');
       
+      // Find the selected friend's data
+      const selectedFriend = friends.find(({ friend }) => friend._id === selectedFriendId);
+      if (!selectedFriend) {
+        throw new Error('Friend not found');
+      }
+
+      // Get the friend's email
+      const email = selectedFriend.friend.email;
+
       let message = '';
       if (shareType === 'food') {
         message = `Food Calendar:\n${modalContent}`;
@@ -157,12 +183,15 @@ function Share() {
 
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/notifications/share`,
-        { email, message },
+        { 
+          email: email, // Use the friend's email directly
+          message 
+        },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      setEmail('');
+      setSelectedFriendId('');
       setShareSuccess('List shared successfully!');
       setTimeout(() => setShareSuccess(''), 3000);
     } catch (error) {
@@ -282,31 +311,43 @@ function Share() {
 
                 {/* Share Options */}
                 <div className="space-y-4">
-                  {/* Email Input */}
+                  {/* Friend Selection */}
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Share with (email)
+                    <label htmlFor="friend" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Share with friend
                     </label>
                     <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="email"
-                        id="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter email address"
+                      <select
+                        id="friend"
+                        value={selectedFriendId}
+                        onChange={(e) => setSelectedFriendId(e.target.value)}
                         className="flex-1 rounded-xl border border-gray-300 dark:border-gray-600 px-4 py-2.5
                           focus:ring-2 focus:ring-[#B8860B] focus:border-transparent
-                          dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
-                      />
+                          dark:bg-gray-700 dark:text-white"
+                      >
+                        <option value="">Select a friend</option>
+                        {friends.map(({ friend }) => (
+                          <option key={friend._id} value={friend._id}>
+                            {friend.name}
+                          </option>
+                        ))}
+                      </select>
                       <button
                         onClick={handleShareWithUser}
-                        disabled={!email || isLoading}
+                        disabled={!selectedFriendId || isLoading}
                         className="w-full sm:w-auto px-6 py-2.5 text-white bg-[#B8860B] rounded-xl 
                           hover:bg-[#9A7209] focus:outline-none focus:ring-2 focus:ring-offset-2 
                           focus:ring-[#B8860B] disabled:opacity-50 disabled:cursor-not-allowed
-                          transition-all duration-300 font-medium"
+                          transition-all duration-300 font-medium flex items-center gap-2"
                       >
-                        {isLoading ? 'Sending...' : 'Send'}
+                        {isLoading ? (
+                          'Sending...'
+                        ) : (
+                          <>
+                            <FaUserFriends className="h-4 w-4" />
+                            Share with Friend
+                          </>
+                        )}
                       </button>
                     </div>
                     {shareError && (

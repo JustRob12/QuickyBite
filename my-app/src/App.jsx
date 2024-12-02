@@ -8,6 +8,7 @@ import Groceries from './components/Groceries';
 import Share from './components/Share';
 import EditProfile from './components/EditProfile';
 import IntroSlider from './components/IntroSlider';
+import Friends from './components/Friends';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -77,6 +78,14 @@ function App() {
           element={
             <ProtectedRoute>
               <EditProfile />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/friends" 
+          element={
+            <ProtectedRoute>
+              <Friends />
             </ProtectedRoute>
           } 
         />

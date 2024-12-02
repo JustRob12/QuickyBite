@@ -10,6 +10,7 @@ const authRoutes = require('./routes/auth');
 const foodRoutes = require('./routes/foodauth');
 const shoppingListRoutes = require('./routes/shoppingList');
 const notificationRoutes = require('./routes/notifications');
+const friendRoutes = require('./routes/friends');
 
 const app = express();
 
@@ -99,6 +100,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/food', foodRoutes);
 app.use('/api/shopping-list', shoppingListRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/friends', friendRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
