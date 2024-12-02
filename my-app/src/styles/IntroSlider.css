@@ -1,0 +1,136 @@
+.intro-slider {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+.slide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    max-width: 90%;
+    position: relative;
+    z-index: 2;
+}
+
+.slide-image {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 30px;
+    opacity: 0.8;
+    transition: transform 0.3s ease;
+}
+
+.slide-image:hover {
+    transform: scale(1.05);
+}
+
+.slide h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+    color: #333;
+    position: relative;
+    z-index: 2;
+}
+
+.slide p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+    line-height: 1.5;
+    position: relative;
+    z-index: 2;
+    max-width: 80%;
+}
+
+.dots {
+    display: flex;
+    gap: 8px;
+    margin: 20px 0;
+    position: relative;
+    z-index: 2;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ddd;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background-color: #F4B400;
+    width: 24px;
+    border-radius: 4px;
+}
+
+.next-button {
+    background-color: #F4B400;
+    color: white;
+    border: none;
+    padding: 15px 0;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.next-button:hover {
+    background-color: #e5a800;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(244, 180, 0, 0.2);
+}
+
+.skip-button {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.skip-button:hover {
+    color: #333;
+    transform: translateY(-1px);
+}
+
+/* Background decoration */
+.intro-slider::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(244, 180, 0, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+    animation: rotate 30s linear infinite;
+    z-index: 1;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

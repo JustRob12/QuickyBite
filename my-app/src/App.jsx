@@ -7,6 +7,7 @@ import FoodCalendar from './components/FoodCalendar';
 import Groceries from './components/Groceries';
 import Share from './components/Share';
 import EditProfile from './components/EditProfile';
+import IntroSlider from './components/IntroSlider';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -19,16 +20,24 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   const token = localStorage.getItem('token');
+  const hasSeenIntro = localStorage.getItem('hasSeenIntro');
 
   return (
     <Router>
       <Routes>
-        {/* Redirect root to calendar if logged in, otherwise to login */}
+        {/* Redirect root based on token and intro status */}
         <Route 
           path="/" 
-          element={token ? <Navigate to="/calendar" /> : <Navigate to="/login" />} 
+          element={
+            token 
+              ? <Navigate to="/calendar" /> 
+              : hasSeenIntro 
+                ? <Navigate to="/login" />
+                : <IntroSlider />
+          } 
         />
         
+        <Route path="/intro" element={<IntroSlider />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route 
