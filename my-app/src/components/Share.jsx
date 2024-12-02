@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BottomBar from './BottomBar';
 import Header from './Header';
 import { format } from 'date-fns';
-import { FaShare, FaCopy, FaEnvelope, FaTimes } from 'react-icons/fa';
+import { FaShare, FaCopy, FaEnvelope, FaTimes, FaCheck } from 'react-icons/fa';
 import axios from 'axios';
 
 function Share() {
@@ -171,132 +171,158 @@ function Share() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Header />
-      <div className="p-4 flex flex-col gap-4">
-        <div className="bg-gray-800/10 dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
-          <button
-            onClick={handleShareFoodList}
-            disabled={isLoading}
-            className="w-full py-3 text-center text-lg font-medium text-[#B8860B] 
-              bg-transparent rounded-xl border-2 border-[#B8860B] 
-              hover:bg-[#B8860B] hover:text-white transition-colors
-              dark:text-[#B8860B] dark:hover:text-white"
-          >
-            Share your Food Calendar
-          </button>
-        </div>
-
-        <div className="bg-gray-800/10 dark:bg-gray-800 p-6 rounded-2xl shadow-sm">
-          <button
-            onClick={handleShareShoppingList}
-            disabled={isLoading}
-            className="w-full py-3 text-center text-lg font-medium text-[#B8860B] 
-              bg-transparent rounded-xl border-2 border-[#B8860B] 
-              hover:bg-[#B8860B] hover:text-white transition-colors
-              dark:text-[#B8860B] dark:hover:text-white"
-          >
-            Share your Shopping List
-          </button>
-        </div>
-      </div>
-
-      {/* Share Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-auto">
-            <div className="p-4 sm:p-6">
-              {/* Modal Header */}
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
-                  {modalTitle}
-                </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                >
-                  <FaTimes className="h-5 w-5" />
-                </button>
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
+        {/* Share Cards Container */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Food Calendar Share Card */}
+          <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#B8860B]/10 to-[#B8860B]/5 group-hover:opacity-75 transition-opacity" />
+            <div className="p-6 relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Food Calendar</h3>
+                <FaShare className="text-[#B8860B] text-xl" />
               </div>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">Share your meal planning schedule with friends and family</p>
+              <button
+                onClick={handleShareFoodList}
+                disabled={isLoading}
+                className="w-full bg-transparent border-2 border-[#B8860B] text-[#B8860B] hover:bg-[#B8860B] 
+                  hover:text-white dark:text-[#B8860B] dark:hover:text-white py-3 px-6 rounded-xl
+                  transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50
+                  disabled:cursor-not-allowed font-medium text-lg flex items-center justify-center gap-2"
+              >
+                <FaShare className="text-lg" />
+                Share Calendar
+              </button>
+            </div>
+          </div>
 
-              {/* Content Preview */}
-              <div className="mb-4">
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 max-h-60 overflow-y-auto whitespace-pre-wrap text-sm text-gray-900 dark:text-white">
-                  {modalContent}
+          {/* Shopping List Share Card */}
+          <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#B8860B]/10 to-[#B8860B]/5 group-hover:opacity-75 transition-opacity" />
+            <div className="p-6 relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Shopping List</h3>
+                <FaShare className="text-[#B8860B] text-xl" />
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">Share your shopping list with others</p>
+              <button
+                onClick={handleShareShoppingList}
+                disabled={isLoading}
+                className="w-full bg-transparent border-2 border-[#B8860B] text-[#B8860B] hover:bg-[#B8860B] 
+                  hover:text-white dark:text-[#B8860B] dark:hover:text-white py-3 px-6 rounded-xl
+                  transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50
+                  disabled:cursor-not-allowed font-medium text-lg flex items-center justify-center gap-2"
+              >
+                <FaShare className="text-lg" />
+                Share List
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Share Modal */}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-auto transform transition-all">
+              <div className="p-6">
+                {/* Modal Header */}
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    {modalTitle}
+                  </h3>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="text-gray-400 hover:text-gray-500 focus:outline-none p-2 hover:bg-gray-100 
+                      dark:hover:bg-gray-700 rounded-full transition-colors"
+                  >
+                    <FaTimes className="h-5 w-5" />
+                  </button>
                 </div>
-              </div>
 
-              {/* Share Options */}
-              <div className="space-y-4">
-                {/* Email Input */}
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Share with (email)
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <input
-                      type="email"
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter email address"
-                      className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm 
-                               focus:ring-2 focus:ring-[#B8860B] focus:border-transparent
-                               dark:bg-gray-700 dark:text-white"
-                    />
+                {/* Content Preview */}
+                <div className="mb-6">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 max-h-60 overflow-y-auto 
+                    whitespace-pre-wrap text-sm text-gray-900 dark:text-white custom-scrollbar">
+                    {modalContent}
+                  </div>
+                </div>
+
+                {/* Share Options */}
+                <div className="space-y-4">
+                  {/* Email Input */}
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Share with (email)
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="email"
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter email address"
+                        className="flex-1 rounded-xl border border-gray-300 dark:border-gray-600 px-4 py-2.5
+                          focus:ring-2 focus:ring-[#B8860B] focus:border-transparent
+                          dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                      />
+                      <button
+                        onClick={handleShareWithUser}
+                        disabled={!email || isLoading}
+                        className="w-full sm:w-auto px-6 py-2.5 text-white bg-[#B8860B] rounded-xl 
+                          hover:bg-[#9A7209] focus:outline-none focus:ring-2 focus:ring-offset-2 
+                          focus:ring-[#B8860B] disabled:opacity-50 disabled:cursor-not-allowed
+                          transition-all duration-300 font-medium"
+                      >
+                        {isLoading ? 'Sending...' : 'Send'}
+                      </button>
+                    </div>
+                    {shareError && (
+                      <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                        <FaTimes className="h-4 w-4" />
+                        {shareError}
+                      </p>
+                    )}
+                    {shareSuccess && (
+                      <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center gap-1">
+                        <FaCheck className="h-4 w-4" />
+                        {shareSuccess}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Quick Share Options */}
+                  <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
                     <button
-                      onClick={handleShareWithUser}
-                      disabled={!email}
-                      className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-[#B8860B] 
-                               rounded-lg hover:bg-[#9A7209] focus:outline-none focus:ring-2 
-                               focus:ring-offset-2 focus:ring-[#B8860B] disabled:opacity-50
-                               disabled:cursor-not-allowed transition-colors duration-200"
+                      onClick={handleCopyToClipboard}
+                      className="inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 
+                        bg-gray-100 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 
+                        focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 
+                        dark:hover:bg-gray-600 transition-all duration-300 gap-2"
                     >
-                      Send
+                      <FaCopy className="h-4 w-4" />
+                      Copy to clipboard
+                    </button>
+                    
+                    <button
+                      onClick={handleSendGmail}
+                      className="inline-flex items-center px-4 py-2.5 text-sm font-medium text-gray-700 
+                        bg-gray-100 rounded-xl hover:bg-gray-200 focus:outline-none focus:ring-2 
+                        focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 
+                        dark:hover:bg-gray-600 transition-all duration-300 gap-2"
+                    >
+                      <FaEnvelope className="h-4 w-4" />
+                      Send via Email
                     </button>
                   </div>
-                  {shareError && (
-                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                      {shareError}
-                    </p>
-                  )}
-                  {shareSuccess && (
-                    <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-                      {shareSuccess}
-                    </p>
-                  )}
-                </div>
-
-                {/* Quick Share Options */}
-                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                  <button
-                    onClick={handleCopyToClipboard}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 
-                             bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 
-                             focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 
-                             dark:hover:bg-gray-600 transition-colors duration-200"
-                  >
-                    <FaCopy className="mr-2 h-4 w-4" />
-                    Copy to clipboard
-                  </button>
-                  
-                  <button
-                    onClick={handleSendGmail}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 
-                             bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 
-                             focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-300 
-                             dark:hover:bg-gray-600 transition-colors duration-200"
-                  >
-                    <FaEnvelope className="mr-2 h-4 w-4" />
-                    Send via Email
-                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-
+        )}
+      </div>
       <BottomBar />
     </div>
   );
