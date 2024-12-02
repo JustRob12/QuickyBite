@@ -417,23 +417,15 @@ function FoodCalendar() {
 
         {/* Full Calendar Modal */}
         {showFullCalendar && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md relative">
-              <button
-                onClick={() => setShowFullCalendar(false)}
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <FaTimes />
-              </button>
-              <Calendar
-                selectedDate={selectedDate}
-                onSelectDate={(date) => {
-                  setSelectedDate(date);
-                  setShowFullCalendar(false);
-                }}
-              />
-            </div>
-          </div>
+          <Calendar
+            selectedDate={selectedDate}
+            onSelectDate={(date) => {
+              setSelectedDate(date);
+              setShowFullCalendar(false);
+            }}
+            onClose={() => setShowFullCalendar(false)}
+            meals={meals}
+          />
         )}
       </div>
       <BottomBar />

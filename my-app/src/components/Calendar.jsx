@@ -9,10 +9,10 @@ import {
   addMonths,
   subMonths
 } from 'date-fns';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaTimes } from 'react-icons/fa';
 
-function Calendar({ selectedDate, onSelectDate, onClose, meals }) {
-  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+function Calendar({ selectedDate, onSelectDate, onClose, meals = [] }) {
+  const [currentMonth, setCurrentMonth] = React.useState(new Date(selectedDate));
 
   const daysInMonth = eachDayOfInterval({
     start: startOfMonth(currentMonth),
@@ -31,6 +31,7 @@ function Calendar({ selectedDate, onSelectDate, onClose, meals }) {
 
   // Add function to get meals for a specific date
   const getMealsForDate = (date) => {
+    if (!meals) return [];
     return meals.filter(meal => 
       format(new Date(meal.date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
     );
@@ -56,24 +57,50 @@ function Calendar({ selectedDate, onSelectDate, onClose, meals }) {
     );
   };
 
+  // Add click handler for the overlay
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg w-[90%] max-w-md">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={handleOverlayClick}
+    >
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md relative">
+        {/* Close button in the corner */}
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 
+            dark:text-gray-400 dark:hover:text-gray-200 p-2 rounded-full
+            hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        >
+          <FaTimes className="w-5 h-5" />
+        </button>
+
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <button onClick={handlePrevMonth}>
+        <div className="flex justify-between items-center mb-6">
+          <button 
+            onClick={handlePrevMonth}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+          >
             <FaChevronLeft className="text-[#B8860B]" />
           </button>
           <h2 className="text-lg font-semibold dark:text-white">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
-          <button onClick={handleNextMonth}>
+          <button 
+            onClick={handleNextMonth}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+          >
             <FaChevronRight className="text-[#B8860B]" />
           </button>
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-1 mb-4">
           {/* Week day headers */}
           {weekDays.map(day => (
             <div 
@@ -89,7 +116,7 @@ function Calendar({ selectedDate, onSelectDate, onClose, meals }) {
             <div key={`empty-${index}`} className="p-2" />
           ))}
 
-          {/* Calendar days with dots */}
+          {/* Calendar days */}
           {daysInMonth.map(day => (
             <div
               key={day.toString()}
@@ -100,8 +127,9 @@ function Calendar({ selectedDate, onSelectDate, onClose, meals }) {
                   onSelectDate(day);
                   onClose();
                 }}
-                className={`p-2 text-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors
-                  ${isSameDay(day, selectedDate) ? 'bg-[#B8860B] text-white' : 'dark:text-white'}
+                className={`w-10 h-10 flex items-center justify-center rounded-full 
+                  hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors
+                  ${isSameDay(day, selectedDate) ? 'bg-[#B8860B] text-white hover:bg-[#9B7506]' : 'dark:text-white'}
                   ${!isSameMonth(day, currentMonth) ? 'text-gray-300 dark:text-gray-600' : ''}`}
               >
                 {format(day, 'd')}
@@ -111,12 +139,13 @@ function Calendar({ selectedDate, onSelectDate, onClose, meals }) {
           ))}
         </div>
 
-        {/* Close button */}
+        {/* Done button */}
         <button
           onClick={onClose}
-          className="w-full mt-4 bg-[#B8860B] text-white py-2 rounded-lg"
+          className="w-full bg-[#B8860B] text-white py-2 rounded-lg 
+            hover:bg-[#9B7506] transition-colors"
         >
-          Close
+          Done
         </button>
       </div>
     </div>
