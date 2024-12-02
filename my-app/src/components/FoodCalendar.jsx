@@ -6,6 +6,9 @@ import Calendar from './Calendar';
 import { addWeeks, subWeeks, format, startOfWeek, endOfWeek, addDays } from 'date-fns';
 import AddMealModal from './AddMealModal';
 import { useNavigate } from 'react-router-dom';
+import burger from '../assets/burger-blur.png';
+import pizza from '../assets/pizza-blur.png';
+import salad from '../assets/fries-blur.png';
 
 function FoodCalendar() {
   const [showFullCalendar, setShowFullCalendar] = useState(false);
@@ -213,7 +216,7 @@ function FoodCalendar() {
     };
 
     return (
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
         <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-2">
             {icon}
@@ -288,8 +291,38 @@ function FoodCalendar() {
   };
 
   return (
-    <div className="min-h-screen pb-20 bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-hidden relative">
+      {/* Floating Food Background Objects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* First Row */}
+        <div className="absolute top-[20%] right-[15%] w-32 h-32 opacity-10 dark:opacity-5 animate-float-slow">
+          <img src={burger} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute top-[15%] left-[10%] w-28 h-28 opacity-10 dark:opacity-5 animate-float-medium">
+          <img src={burger} alt="" className="w-full h-full object-contain blur-sm rotate-12" />
+        </div>
+
+        {/* Middle Row */}
+        <div className="absolute top-[40%] left-[10%] w-40 h-40 opacity-10 dark:opacity-5 animate-float-medium">
+          <img src={pizza} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute top-[50%] right-[20%] w-36 h-36 opacity-10 dark:opacity-5 animate-float-slow">
+          <img src={pizza} alt="" className="w-full h-full object-contain blur-sm -rotate-45" />
+        </div>
+
+        {/* Bottom Row */}
+        <div className="absolute bottom-[25%] right-[20%] w-36 h-36 opacity-10 dark:opacity-5 animate-float-fast">
+          <img src={salad} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute bottom-[15%] left-[25%] w-32 h-32 opacity-10 dark:opacity-5 animate-float-medium">
+          <img src={salad} alt="" className="w-full h-full object-contain blur-sm rotate-45" />
+        </div>
+      </div>
+
       <Header />
+      <div className="fixed bottom-0 left-0 right-0 z-40">
+        <BottomBar />
+      </div>
 
       {/* Alert Notification */}
       {showAlert && (
@@ -337,7 +370,8 @@ function FoodCalendar() {
         </div>
       )}
 
-      <div className="p-4 bg-white dark:bg-gray-900">
+      {/* Main Content with adjusted padding */}
+      <div className="pt-5 pb-16 px-4 relative z-10">
         {/* Calendar Toggle */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold dark:text-white">
@@ -428,7 +462,6 @@ function FoodCalendar() {
           />
         )}
       </div>
-      <BottomBar />
     </div>
   );
 }

@@ -74,13 +74,13 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
           {/* Additional Dish */}
           <div>
             <button 
-              onClick={() => setAdditionalDish(additionalDish ? '' : 'New Dish')}
+              onClick={() => setAdditionalDish(additionalDish ? '' : '')}
               className="text-white flex items-center gap-2 mb-2 hover:text-gray-200 
                 dark:hover:text-gray-300"
             >
               <span className="text-xl">+</span> Additional Dish
             </button>
-            {additionalDish && (
+            {additionalDish !== undefined && (
               <input
                 type="text"
                 placeholder="Enter additional dish"
@@ -107,13 +107,13 @@ function AddMealModal({ isOpen, onClose, mealType, onSave, existingMeal }) {
           {/* Side Dish */}
           <div>
             <button 
-              onClick={() => setSideDish(sideDish ? '' : 'New Side Dish')}
+              onClick={() => setSideDish(sideDish ? '' : '')}
               className="text-white flex items-center gap-2 mb-2 hover:text-gray-200 
                 dark:hover:text-gray-300"
             >
               <span className="text-xl">+</span> Side Dish
             </button>
-            {sideDish && (
+            {sideDish !== undefined && (
               <input
                 type="text"
                 placeholder="Enter side dish"

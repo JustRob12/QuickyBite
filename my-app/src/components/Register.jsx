@@ -2,6 +2,9 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import axios from 'axios';
+import burger from '../assets/fries-blur.png';
+import pizza from '../assets/pizza-blur.png';
+import salad from '../assets/burger-blur.png';
 
 function Register() {
   const navigate = useNavigate();
@@ -59,8 +62,34 @@ function Register() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900">
-      {/* Loading Overlay with Tailwind Animation */}
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900 overflow-hidden relative">
+      {/* Floating Food Background Objects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* First Row */}
+        <div className="absolute top-[20%] right-[15%] w-32 h-32 opacity-20 dark:opacity-10 animate-float-slow">
+          <img src={burger} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute top-[15%] left-[10%] w-28 h-28 opacity-15 dark:opacity-10 animate-float-medium">
+          <img src={burger} alt="" className="w-full h-full object-contain blur-sm rotate-12" />
+        </div>
+
+        {/* Middle Row */}
+        <div className="absolute top-[40%] left-[10%] w-40 h-40 opacity-20 dark:opacity-10 animate-float-medium">
+          <img src={pizza} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute top-[50%] right-[20%] w-36 h-36 opacity-15 dark:opacity-10 animate-float-slow">
+          <img src={pizza} alt="" className="w-full h-full object-contain blur-sm -rotate-45" />
+        </div>
+
+        {/* Bottom Row */}
+        <div className="absolute bottom-[25%] right-[20%] w-36 h-36 opacity-20 dark:opacity-10 animate-float-fast">
+          <img src={salad} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute bottom-[15%] left-[25%] w-32 h-32 opacity-15 dark:opacity-10 animate-float-medium">
+          <img src={salad} alt="" className="w-full h-full object-contain blur-sm rotate-45" />
+        </div>
+      </div>
+
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-8 flex flex-col items-center">
@@ -70,8 +99,8 @@ function Register() {
         </div>
       )}
 
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+      <div className="w-full max-w-md animate-fade-in relative z-10">
+        <div className="text-center mb-8 animate-fade-in-up">
           <h1 className="text-6xl font-bold">
             <span className="text-[#B8860B]">Quick</span>
             <span className="text-black dark:text-white">Bites</span>
@@ -81,24 +110,24 @@ function Register() {
           </p>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 animate-fade-in-up delay-150">
           <h2 className="text-2xl font-bold mb-2 dark:text-white">Register</h2>
           <p className="text-gray-600 dark:text-gray-400">Create your account to get started.</p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded">
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded animate-fade-in">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-100 rounded">
+          <div className="mb-4 p-3 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-100 rounded animate-fade-in">
             {success}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in-up delay-300">
           <div>
             <label className="block text-sm mb-2 dark:text-gray-300">Name</label>
             <input

@@ -2,6 +2,9 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import axios from 'axios';
+import burger from '../assets/burger-blur.png';
+import pizza from '../assets/pizza-blur.png';
+import salad from '../assets/fries-blur.png';
 
 function Login() {
   const navigate = useNavigate();
@@ -41,7 +44,28 @@ function Login() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900">
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-white dark:bg-gray-900 overflow-hidden relative">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[10%] left-[15%] w-32 h-32 opacity-20 dark:opacity-10 animate-float-slow">
+          <img src={burger} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute top-[5%] right-[20%] w-28 h-28 opacity-15 dark:opacity-10 animate-float-medium">
+          <img src={burger} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute top-[40%] right-[10%] w-40 h-40 opacity-20 dark:opacity-10 animate-float-medium">
+          <img src={pizza} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute top-[45%] left-[25%] w-36 h-36 opacity-15 dark:opacity-10 animate-float-slow">
+          <img src={pizza} alt="" className="w-full h-full object-contain blur-sm rotate-45" />
+        </div>
+        <div className="absolute bottom-[15%] left-[20%] w-36 h-36 opacity-20 dark:opacity-10 animate-float-fast">
+          <img src={salad} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute bottom-[20%] right-[15%] w-32 h-32 opacity-15 dark:opacity-10 animate-float-medium">
+          <img src={salad} alt="" className="w-full h-full object-contain blur-sm -rotate-45" />
+        </div>
+      </div>
+
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-8 flex flex-col items-center">
@@ -51,8 +75,8 @@ function Login() {
         </div>
       )}
 
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+      <div className="w-full max-w-md animate-fade-in relative z-10">
+        <div className="text-center mb-8 animate-fade-in-up">
           <h1 className="text-6xl font-bold">
             <span className="text-[#B8860B]">Quick</span>
             <span className="text-black dark:text-white">Bites</span>
@@ -60,12 +84,12 @@ function Login() {
           <p className="text-sm text-gray-600 dark:text-gray-400">Because good things come to those who plan – morning, noon, and night.</p>
         </div>
         
-        <div className="mb-6">
+        <div className="mb-6 animate-fade-in-up delay-150">
           <h2 className="text-2xl font-bold mb-2 dark:text-white">Login</h2>
           <p className="text-gray-600 dark:text-gray-400">Welcome back! Please enter your details.</p>
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4 animate-fade-in-up delay-300" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm mb-2 dark:text-gray-300">Email or Username</label>
             <input 
@@ -105,7 +129,7 @@ function Login() {
           </p>
         </form>
         {error && (
-          <div className="text-red-500 text-center mb-4">
+          <div className="text-red-500 text-center mb-4 animate-fade-in">
             {error}
           </div>
         )}

@@ -4,6 +4,9 @@ import Header from './Header';
 import { format } from 'date-fns';
 import { FaShare, FaCopy, FaEnvelope, FaTimes, FaCheck } from 'react-icons/fa';
 import axios from 'axios';
+import burger from '../assets/burger-blur.png';
+import pizza from '../assets/pizza-blur.png';
+import salad from '../assets/fries-blur.png';
 
 function Share() {
   const [isLoading, setIsLoading] = useState(false);
@@ -171,13 +174,40 @@ function Share() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-900 overflow-hidden relative">
+      {/* Floating Food Background Objects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* First Row */}
+        <div className="absolute top-[20%] right-[15%] w-32 h-32 opacity-10 dark:opacity-5 animate-float-slow">
+          <img src={burger} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute top-[15%] left-[10%] w-28 h-28 opacity-10 dark:opacity-5 animate-float-medium">
+          <img src={burger} alt="" className="w-full h-full object-contain blur-sm rotate-12" />
+        </div>
+
+        {/* Middle Row */}
+        <div className="absolute top-[40%] left-[10%] w-40 h-40 opacity-10 dark:opacity-5 animate-float-medium">
+          <img src={pizza} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute top-[50%] right-[20%] w-36 h-36 opacity-10 dark:opacity-5 animate-float-slow">
+          <img src={pizza} alt="" className="w-full h-full object-contain blur-sm -rotate-45" />
+        </div>
+
+        {/* Bottom Row */}
+        <div className="absolute bottom-[25%] right-[20%] w-36 h-36 opacity-10 dark:opacity-5 animate-float-fast">
+          <img src={salad} alt="" className="w-full h-full object-contain blur-sm" />
+        </div>
+        <div className="absolute bottom-[15%] left-[25%] w-32 h-32 opacity-10 dark:opacity-5 animate-float-medium">
+          <img src={salad} alt="" className="w-full h-full object-contain blur-sm rotate-45" />
+        </div>
+      </div>
+
       <Header />
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
+      <div className="max-w-4xl mx-auto p-4 space-y-6 relative z-10">
         {/* Share Cards Container */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Food Calendar Share Card */}
-          <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-r from-[#B8860B]/10 to-[#B8860B]/5 group-hover:opacity-75 transition-opacity" />
             <div className="p-6 relative z-10">
               <div className="flex items-center justify-between mb-4">
@@ -200,7 +230,7 @@ function Share() {
           </div>
 
           {/* Shopping List Share Card */}
-          <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-r from-[#B8860B]/10 to-[#B8860B]/5 group-hover:opacity-75 transition-opacity" />
             <div className="p-6 relative z-10">
               <div className="flex items-center justify-between mb-4">
@@ -226,7 +256,7 @@ function Share() {
         {/* Share Modal */}
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md mx-auto transform transition-all">
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md shadow-2xl transform transition-all">
               <div className="p-6">
                 {/* Modal Header */}
                 <div className="flex justify-between items-center mb-6">
